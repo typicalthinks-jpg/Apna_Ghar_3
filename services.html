@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - Apna Ghar</title>
+    <style>
+        :root {
+            --bg-primary: #f8f8f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --header-bg: #2c3e50;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --header-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin-top: 60px;
+            transition: all 0.3s ease;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: beige;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 8px;
+            border-radius: 100px;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        nav a.active {
+            background-color: #ff9800;
+            border-radius: 5px;
+            padding: 5px 10px;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 15px;
+            color: white;
+        }
+
+        #logoutLink {
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #4dabf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #339af0;
+            transform: translateY(-2px);
+        }
+
+        .btn-success { background-color: #40c057; }
+        .btn-warning { background-color: #fd7e14; }
+        .btn-danger { background-color: #fa5252; }
+        .btn-info { background-color: #15aabf; }
+
+        .active-filter {
+            background-color: #ff9800 !important;
+        }
+
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .property-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .property-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .verified-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff9800;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .property-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .property-details {
+            padding: 1.5rem;
+        }
+
+        .property-price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2b8a3e;
+            margin: 0.5rem 0;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-actions button {
+            flex: 1;
+            padding: 8px 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            min-width: 70px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .payment-method {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .payment-method.selected {
+            border: 2px solid #4dabf7;
+            background: rgba(77,171,247,0.1);
+        }
+
+        footer {
+            background-color: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            nav {
+                margin: 10px 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            nav a {
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html" class="active">Services</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="contact.html">Contact</a>
+                <a href="owner-dashboard.html" id="ownerDashboardLink" style="display:none;">Dashboard</a>
+                <a href="log.html" id="loginLink">Login</a>
+                <a href="signup.html" id="signupLink">Sign Up</a>
+                <span id="logoutLink" style="display:none;"></span>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Owner Tools - Sirf owners ke liye dikhega -->
+        <div style="text-align: center; margin-bottom: 20px; display:none;" id="ownerTools">
+            <button class="btn btn-success" onclick="showTenantManagement()">👥 Tenant Management</button>
+            <button class="btn btn-warning" onclick="showMaintenanceRequests()">🔧 Maintenance</button>
+            <button class="btn btn-info" onclick="showRentReminders()">⏰ Rent Reminders</button>
+            <button class="btn" onclick="showReferralProgram()">🎁 Refer & Earn</button>
+        </div>
+
+        <div class="action-buttons">
+            <div class="filter-buttons">
+                <button class="btn filter-btn active-filter" data-type="all">All</button>
+                <button class="btn filter-btn" data-type="students">Students</button>
+                <button class="btn filter-btn" data-type="family">Family</button>
+                <button class="btn filter-btn" data-type="expensive">Expensive</button>
+            </div>
+        </div>
+
+        <div class="property-grid" id="properties-container"></div>
+    </div>
+
+    <!-- Modals (same as before) -->
+    <div class="modal" id="verifyModal"><div class="modal-content"><h2>✅ Owner Verification</h2><input type="text" id="ownerName" placeholder="Owner Name"><input type="text" id="ownerPhone" placeholder="Phone Number"><input type="email" id="ownerEmail" placeholder="Email"><input type="text" id="ownerAadhar" placeholder="Aadhar Number" maxlength="12"><button class="btn btn-success" onclick="verifyOwner()">Verify Now</button><button class="btn" onclick="closeModal('verifyModal')">Close</button></div></div>
+    <div class="modal" id="paymentModal"><div class="modal-content"><h2>💳 Rent Payment</h2><div id="paymentDetails"></div><div class="payment-methods"><div class="payment-method" onclick="selectPaymentMethod('card')">💳 Card</div><div class="payment-method" onclick="selectPaymentMethod('upi')">📱 UPI</div><div class="payment-method" onclick="selectPaymentMethod('netbanking')">🏦 NetBanking</div></div><button class="btn btn-success" onclick="processPayment()">Pay Now</button><button class="btn" onclick="closeModal('paymentModal')">Close</button></div></div>
+    <div class="modal" id="receiptModal"><div class="modal-content"><h2>🧾 Rent Receipt</h2><div id="receiptContent"></div><button class="btn btn-success" onclick="downloadReceipt()">Download PDF</button><button class="btn" onclick="closeModal('receiptModal')">Close</button></div></div>
+    <div class="modal" id="depositModal"><div class="modal-content"><h2>💰 Security Deposit</h2><div id="depositContent"></div><button class="btn btn-success" onclick="payDeposit()">Pay Deposit</button><button class="btn btn-warning" onclick="requestRefund()">Request Refund</button><button class="btn" onclick="closeModal('depositModal')">Close</button></div></div>
+    <div class="modal" id="tenantModal"><div class="modal-content"><h2>👥 Tenant Management</h2><div id="tenantList"></div><button class="btn" onclick="closeModal('tenantModal')">Close</button></div></div>
+    <div class="modal" id="maintenanceModal"><div class="modal-content"><h2>🔧 Maintenance Request</h2><select id="maintenanceType"><option value="plumbing">Plumbing</option><option value="electrical">Electrical</option><option value="cleaning">Cleaning</option><option value="other">Other</option></select><textarea id="maintenanceDesc" placeholder="Describe the issue..." rows="3"></textarea><input type="file" id="maintenanceImage" accept="image/*"><button class="btn btn-success" onclick="submitMaintenance()">Submit Request</button><button class="btn" onclick="closeModal('maintenanceModal')">Close</button></div></div>
+    <div class="modal" id="reminderModal"><div class="modal-content"><h2>⏰ Rent Reminders</h2><div id="reminderList"></div><button class="btn" onclick="closeModal('reminderModal')">Close</button></div></div>
+    <div class="modal" id="referralModal"><div class="modal-content"><h2>🎁 Refer & Earn</h2><p>Your Referral Code: <strong id="referralCode">APNA2025</strong></p><input type="email" id="referralEmail" placeholder="Friend's Email"><button class="btn btn-success" onclick="sendReferral()">Send Invite</button><div id="referralStats"></div><button class="btn" onclick="closeModal('referralModal')">Close</button></div></div>
+
+    <footer>&copy; 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script>
+        // ========== SERVICES PAGE FIXED SCRIPT ==========
+
+        /* 1. THEME MANAGEMENT */
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                
+                themeBtn.onclick = function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const newTheme = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+
+        /* 2. LOGIN/DASHBOARD LINKS */
+        (function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            console.log('Services page - Current user:', user);
+            
+            const dashboardLink = document.getElementById('ownerDashboardLink');
+            const loginLink = document.getElementById('loginLink');
+            const signupLink = document.getElementById('signupLink');
+            const logoutSpan = document.getElementById('logoutLink');
+            const ownerTools = document.getElementById('ownerTools');
+            
+            if(user) {
+                // User logged in
+                if(loginLink) loginLink.style.display = 'none';
+                if(signupLink) signupLink.style.display = 'none';
+                
+                // Show logout
+                if(logoutSpan) {
+                    logoutSpan.style.display = 'inline-block';
+                    logoutSpan.innerHTML = `<a href="#" onclick="logout()">Logout (${user.name})</a>`;
+                }
+                
+                // Show dashboard for owners
+                if(dashboardLink && user.role === 'owner') {
+                    dashboardLink.style.display = 'inline-block';
+                }
+                
+                // Show owner tools for owners
+                if(ownerTools && user.role === 'owner') {
+                    ownerTools.style.display = 'block';
+                }
+            } else {
+                // No user
+                if(loginLink) loginLink.style.display = 'inline-block';
+                if(signupLink) signupLink.style.display = 'inline-block';
+                if(logoutSpan) logoutSpan.style.display = 'none';
+                if(dashboardLink) dashboardLink.style.display = 'none';
+                if(ownerTools) ownerTools.style.display = 'none';
+            }
+        })();
+
+        /* 3. LOGOUT FUNCTION */
+        function logout() {
+            if(confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                alert('✅ Logged out successfully!');
+                window.location.href = 'home.html';
+            }
+            return false;
+        }
+
+        /* 4. ACTIVE NAVIGATION */
+        (function() {
+            const currentPage = 'services.html';
+            document.querySelectorAll('nav a').forEach(link => {
+                const href = link.getAttribute('href');
+                if(href === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        })();
+
+        /* 5. GLOBAL VARIABLES */
+        let currentProperty = null;
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || {
+            name: 'Guest User',
+            email: 'guest@apnaghar.com',
+            phone: '9999999999'
+        };
+        let selectedPaymentMethod = null;
+
+        /* 6. SAMPLE PROPERTIES */
+        const sampleProperties = [
+            {
+                id: 1,
+                type: 'students',
+                img: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2',
+                owner: 'Ramesh Kumar',
+                phone: '9876543210',
+                title: 'Cozy Student Room',
+                price: 8000,
+                location: 'Delhi University',
+                verified: true
+            },
+            {
+                id: 2,
+                type: 'students',
+                img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267',
+                owner: 'Priya Sharma',
+                phone: '8765432109',
+                title: 'PG Hostel',
+                price: 6500,
+                location: 'Vijay Nagar',
+                verified: false
+            },
+            {
+                id: 3,
+                type: 'family',
+                img: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914',
+                owner: 'Amit Patel',
+                phone: '7654321098',
+                title: '2BHK Family Apartment',
+                price: 18000,
+                location: 'Andheri East',
+                verified: true
+            },
+            {
+                id: 4,
+                type: 'family',
+                img: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb',
+                owner: 'Neha Gupta',
+                phone: '6543210987',
+                title: '3BHK Flat',
+                price: 25000,
+                location: 'HSR Layout, Bangalore',
+                verified: false
+            },
+            {
+                id: 5,
+                type: 'expensive',
+                img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
+                owner: 'Rajesh Malhotra',
+                phone: '5432109876',
+                title: 'Luxury Villa',
+                price: 75000,
+                location: 'Baner, Pune',
+                verified: true
+            },
+            {
+                id: 6,
+                type: 'expensive',
+                img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688',
+                owner: 'Vikram Singh',
+                phone: '4321098765',
+                title: 'Penthouse Apartment',
+                price: 120000,
+                location: 'Bandra West, Mumbai',
+                verified: false
+            }
+        ];
+
+        // Display properties
+        const container = document.getElementById('properties-container');
+        sampleProperties.forEach(prop => {
+            const card = document.createElement('div');
+            card.className = 'property-card';
+            card.dataset.type = prop.type;
+            card.dataset.id = prop.id;
+            
+            let verifiedBadge = '';
+            if(prop.verified) {
+                verifiedBadge = '<span class="verified-badge">✅ Verified Owner</span>';
+            }
+            
+            card.innerHTML = `
+                ${verifiedBadge}
+                <img src="${prop.img}" class="property-img">
+                <div class="property-details">
+                    <h3>${prop.title}</h3>
+                    <div>👤 Owner: ${prop.owner}</div>
+                    <div>📞 Phone: ${prop.phone}</div>
+                    <div class="property-price">₹${prop.price.toLocaleString()}/month</div>
+                    <div>📍 ${prop.location}</div>
+                    <div class="quick-actions">
+                        <button class="btn-success" onclick='showPayment(${JSON.stringify(prop).replace(/'/g, "&#39;")})'>💳 Pay Rent</button>
+                        <button class="btn-info" onclick='showReceipt(${JSON.stringify(prop).replace(/'/g, "&#39;")})'>🧾 Receipt</button>
+                        <button class="btn-warning" onclick='showDeposit(${JSON.stringify(prop).replace(/'/g, "&#39;")})'>💰 Deposit</button>
+                        <button class="btn-danger" onclick='showMaintenanceRequest(${JSON.stringify(prop).replace(/'/g, "&#39;")})'>🔧 Maintenance</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active-filter'));
+                this.classList.add('active-filter');
+                
+                const type = this.dataset.type;
+                document.querySelectorAll('.property-card').forEach(card => {
+                    card.style.display = (type === 'all' || card.dataset.type === type) ? 'block' : 'none';
+                });
+            });
+        });
+
+        /* 7. MODAL FUNCTIONS */
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        /* 8. VERIFICATION FUNCTIONS */
+        function showVerification(property) {
+            currentProperty = property;
+            document.getElementById('verifyModal').style.display = 'block';
+        }
+
+        function verifyOwner() {
+            const ownerData = {
+                name: document.getElementById('ownerName').value,
+                phone: document.getElementById('ownerPhone').value,
+                email: document.getElementById('ownerEmail').value,
+                aadhar: document.getElementById('ownerAadhar').value,
+                verified: true,
+                verifiedDate: new Date().toISOString()
+            };
+
+            if(ownerData.name && ownerData.phone && ownerData.aadhar) {
+                const owners = JSON.parse(localStorage.getItem('verifiedOwners') || '[]');
+                owners.push(ownerData);
+                localStorage.setItem('verifiedOwners', JSON.stringify(owners));
+                
+                alert('✅ Owner verified successfully! Blue badge added.');
+                closeModal('verifyModal');
+                location.reload();
+            } else {
+                alert('❌ Please fill all fields');
+            }
+        }
+
+        /* 9. PAYMENT FUNCTIONS */
+        function showPayment(property) {
+            currentProperty = property;
+            document.getElementById('paymentDetails').innerHTML = `
+                <p><strong>Property:</strong> ${property.title}</p>
+                <p><strong>Monthly Rent:</strong> ₹${property.price}</p>
+                <p><strong>Owner:</strong> ${property.owner}</p>
+                <hr>
+                <p><strong>Total Payable:</strong> ₹${property.price}</p>
+            `;
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function processPayment() {
+            if(!selectedPaymentMethod) {
+                alert('❌ Please select payment method');
+                return;
+            }
+
+            const payment = {
+                propertyId: currentProperty.id,
+                amount: currentProperty.price,
+                method: selectedPaymentMethod,
+                date: new Date().toISOString(),
+                user: currentUser.email
+            };
+
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            payments.push(payment);
+            localStorage.setItem('payments', JSON.stringify(payments));
+
+            alert(`✅ Payment of ₹${currentProperty.price} successful!`);
+            closeModal('paymentModal');
+        }
+
+        /* 10. RECEIPT FUNCTIONS */
+        function showReceipt(property) {
+            const receipt = generateReceipt(property);
+            document.getElementById('receiptContent').innerHTML = receipt;
+            document.getElementById('receiptModal').style.display = 'block';
+        }
+
+        function generateReceipt(property) {
+            const receiptNo = 'RCT' + Date.now();
+            return `
+                <div style="text-align:center;">
+                    <h3>APNA GHAR</h3>
+                    <p>RENT RECEIPT</p>
+                </div>
+                <hr>
+                <p><strong>Receipt No:</strong> ${receiptNo}</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Property:</strong> ${property.title}</p>
+                <p><strong>Owner:</strong> ${property.owner}</p>
+                <p><strong>Tenant:</strong> ${currentUser.name}</p>
+                <p><strong>Amount:</strong> ₹${property.price}</p>
+                <p><strong>Period:</strong> ${new Date().toLocaleString('default', { month: 'long' })} 2026</p>
+                <hr>
+                <p style="text-align:center;">Thank you for timely payment!</p>
+            `;
+        }
+
+        function downloadReceipt() {
+            const receipt = document.getElementById('receiptContent').innerText;
+            const blob = new Blob([receipt], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'rent-receipt.txt';
+            a.click();
+        }
+
+        /* 11. DEPOSIT FUNCTIONS */
+        function showDeposit(property) {
+            currentProperty = property;
+            const deposit = property.price * 2;
+            document.getElementById('depositContent').innerHTML = `
+                <p><strong>Property:</strong> ${property.title}</p>
+                <p><strong>Monthly Rent:</strong> ₹${property.price}</p>
+                <p><strong>Security Deposit:</strong> ₹${deposit} (2 months)</p>
+                <p><strong>Current Status:</strong> ${localStorage.getItem('deposit_' + property.id) ? 'Paid' : 'Pending'}</p>
+                <hr>
+                <p>Interest Earned: ₹${Math.round(deposit * 0.04)} per year</p>
+            `;
+            document.getElementById('depositModal').style.display = 'block';
+        }
+
+        function payDeposit() {
+            if(currentProperty) {
+                localStorage.setItem('deposit_' + currentProperty.id, 'paid');
+                alert('✅ Security deposit paid successfully!');
+                closeModal('depositModal');
+            }
+        }
+
+        function requestRefund() {
+            if(currentProperty) {
+                const refund = {
+                    property: currentProperty.id,
+                    amount: currentProperty.price * 2,
+                    date: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                const refunds = JSON.parse(localStorage.getItem('refundRequests') || '[]');
+                refunds.push(refund);
+                localStorage.setItem('refundRequests', JSON.stringify(refunds));
+                
+                alert('✅ Refund request submitted! Owner will contact you.');
+                closeModal('depositModal');
+            }
+        }
+
+        /* 12. TENANT MANAGEMENT */
+        function showTenantManagement() {
+            const tenants = JSON.parse(localStorage.getItem('tenants') || '[]');
+            let html = '<h3>Your Tenants</h3>';
+            
+            if(tenants.length === 0) {
+                html += '<p>No tenants added yet</p>';
+            } else {
+                tenants.forEach(t => {
+                    html += `
+                        <div style="border-bottom:1px solid #ddd; padding:10px;">
+                            <p><strong>${t.name}</strong> - ${t.property}</p>
+                            <p>Phone: ${t.phone} | Rent: ₹${t.rent}</p>
+                            <p>Due: ${t.nextDue}</p>
+                            <button class="btn btn-success btn-sm" onclick="sendReminder('${t.phone}')">Send Reminder</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('tenantList').innerHTML = html;
+            document.getElementById('tenantModal').style.display = 'block';
+        }
+
+        function sendReminder(phone) {
+            alert(`✅ Reminder sent to ${phone}`);
+        }
+
+        /* 13. MAINTENANCE FUNCTIONS */
+        function showMaintenanceRequest(property) {
+            currentProperty = property;
+            document.getElementById('maintenanceModal').style.display = 'block';
+        }
+
+        function submitMaintenance() {
+            const request = {
+                propertyId: currentProperty.id,
+                propertyName: currentProperty.title,
+                type: document.getElementById('maintenanceType').value,
+                description: document.getElementById('maintenanceDesc').value,
+                image: document.getElementById('maintenanceImage').files[0]?.name || 'No image',
+                status: 'pending',
+                date: new Date().toISOString(),
+                tenant: currentUser.name
+            };
+
+            const requests = JSON.parse(localStorage.getItem('maintenanceRequests') || '[]');
+            requests.push(request);
+            localStorage.setItem('maintenanceRequests', JSON.stringify(requests));
+
+            alert('✅ Maintenance request submitted!');
+            closeModal('maintenanceModal');
+        }
+
+        function showMaintenanceRequests() {
+            const requests = JSON.parse(localStorage.getItem('maintenanceRequests') || '[]');
+            let html = '<h3>Maintenance Requests</h3>';
+            
+            if(requests.length === 0) {
+                html += '<p>No requests yet</p>';
+            } else {
+                requests.forEach(r => {
+                    html += `
+                        <div style="border-bottom:1px solid #ddd; padding:10px;">
+                            <p><strong>${r.propertyName}</strong> - ${r.type}</p>
+                            <p>${r.description}</p>
+                            <p>Status: ${r.status} | Date: ${new Date(r.date).toLocaleDateString()}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('reminderList').innerHTML = html;
+            document.getElementById('reminderModal').style.display = 'block';
+        }
+
+        /* 14. RENT REMINDER FUNCTIONS */
+        function showRentReminders() {
+            const reminders = JSON.parse(localStorage.getItem('rentReminders') || '[]');
+            let html = '<h3>Rent Reminders</h3>';
+            
+            if(reminders.length === 0) {
+                html += '<p>No reminders set</p>';
+            } else {
+                reminders.forEach(r => {
+                    html += `
+                        <div style="border-bottom:1px solid #ddd; padding:10px;">
+                            <p><strong>${r.tenant}</strong> - ${r.property}</p>
+                            <p>Due: ${r.dueDate} | Amount: ₹${r.amount}</p>
+                            <p>Status: ${r.status}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('reminderList').innerHTML = html;
+            document.getElementById('reminderModal').style.display = 'block';
+        }
+
+        /* 15. REFERRAL FUNCTIONS */
+        function showReferralProgram() {
+            const referralCode = 'APNA' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('referralCode').textContent = referralCode;
+            
+            const referrals = JSON.parse(localStorage.getItem('referrals') || '[]');
+            const earnings = referrals.filter(r => r.status === 'completed').length * 500;
+            
+            document.getElementById('referralStats').innerHTML = `
+                <hr>
+                <h4>Your Stats</h4>
+                <p>Total Referrals: ${referrals.length}</p>
+                <p>Earnings: ₹${earnings}</p>
+            `;
+            
+            document.getElementById('referralModal').style.display = 'block';
+        }
+
+        function sendReferral() {
+            const email = document.getElementById('referralEmail').value;
+            const code = document.getElementById('referralCode').textContent;
+            
+            if(email) {
+                const referral = {
+                    code: code,
+                    sentTo: email,
+                    date: new Date().toISOString(),
+                    status: 'pending'
+                };
+                
+                const referrals = JSON.parse(localStorage.getItem('referrals') || '[]');
+                referrals.push(referral);
+                localStorage.setItem('referrals', JSON.stringify(referrals));
+                
+                alert(`✅ Referral sent to ${email}! You'll get ₹500 when they sign up.`);
+                closeModal('referralModal');
+            }
+        }
+
+        /* 16. AUTO REMINDER CHECK */
+        setInterval(() => {
+            const reminders = JSON.parse(localStorage.getItem('rentReminders') || '[]');
+            reminders.forEach(r => {
+                if(new Date(r.dueDate) < new Date() && r.status === 'pending') {
+                    alert(`🔔 Rent due for ${r.property}`);
+                    r.status = 'overdue';
+                }
+            });
+            localStorage.setItem('rentReminders', JSON.stringify(reminders));
+        }, 60000);
+    </script>
+</body>
+</html>

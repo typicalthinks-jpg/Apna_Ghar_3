@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Property - Apna Ghar</title>
+    <style>
+        :root {
+            --bg-primary: #f8f8f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --header-bg: #2c3e50;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --header-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin-top: 60px;
+            transition: all 0.3s ease;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: beige;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 8px;
+            border-radius: 100px;
+        }
+
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 15px;
+            color: white;
+        }
+
+        #logoutLink {
+            cursor: pointer;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: 2px solid #ff9800;
+            border-color: transparent;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preview-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid #ff9800;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4dabf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn-success { background-color: #40c057; }
+        .btn-secondary { background-color: #868e96; }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        footer {
+            background-color: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            nav {
+                margin: 10px 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            nav a {
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="contact.html">Contact</a>
+                <a href="owner-dashboard.html" id="dashboardLink">Dashboard</a>
+                <span id="userInfo"></span>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <h2 id="formTitle">➕ Add New Property</h2>
+        
+        <form id="propertyForm">
+            <div class="form-group">
+                <label class="required">Property Title</label>
+                <input type="text" id="title" placeholder="e.g., 2BHK Family Apartment" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Property Type</label>
+                <select id="type" required>
+                    <option value="">Select Type</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="house">House</option>
+                    <option value="pg">PG/Hostel</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Purpose</label>
+                <select id="purpose" required>
+                    <option value="">Select Purpose</option>
+                    <option value="rent">For Rent</option>
+                    <option value="sale">For Sale</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Monthly Rent (₹)</label>
+                <input type="number" id="price" min="1000" placeholder="e.g., 15000" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Security Deposit (months)</label>
+                <input type="number" id="deposit" value="2" min="1" max="12">
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Bedrooms</label>
+                <input type="number" id="bedrooms" min="1" placeholder="e.g., 2" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Bathrooms</label>
+                <input type="number" id="bathrooms" min="1" placeholder="e.g., 2" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Area (sq ft)</label>
+                <input type="number" id="area" min="100" placeholder="e.g., 850" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Furnishing</label>
+                <select id="furnishing">
+                    <option value="full">Fully Furnished</option>
+                    <option value="semi">Semi-Furnished</option>
+                    <option value="unfurnished">Unfurnished</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Address</label>
+                <input type="text" id="address" placeholder="Full address with landmark" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">City</label>
+                <input type="text" id="city" placeholder="e.g., Mumbai" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Description</label>
+                <textarea id="description" rows="4" placeholder="Describe your property in detail..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Amenities (comma separated)</label>
+                <input type="text" id="amenities" placeholder="WiFi, Parking, AC, Security, etc.">
+            </div>
+            
+            <!-- Upload Photos -->
+            <div class="form-group">
+                <label>Upload Photos (Max 10)</label>
+                <input type="file" id="images" multiple accept="image/*">
+                <div class="image-preview" id="imagePreview"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button type="submit" class="btn btn-success" id="submitBtn">List Property</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='owner-dashboard.html'">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>&copy; 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script>
+        // ========== FIXED: COMPLETE ADD PROPERTY PAGE ==========
+
+        /* 1. THEME MANAGEMENT */
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                
+                themeBtn.onclick = function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const newTheme = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+
+        /* 2. CHECK LOGIN AND ROLE - FIXED */
+        (function() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const userInfo = document.getElementById('userInfo');
+            const dashboardLink = document.getElementById('dashboardLink');
+            
+            console.log('Current user:', currentUser);
+            
+            // Agar user login nahi hai
+            if(!currentUser) {
+                alert('❌ Please login first');
+                window.location.href = 'log.html';
+                return;
+            }
+            
+            // Agar user owner nahi hai
+            if(currentUser.role !== 'owner') {
+                alert('❌ Only property owners can access this page');
+                window.location.href = 'home.html';
+                return;
+            }
+            
+            // User info show karo
+            if(userInfo) {
+                userInfo.innerHTML = `<a href="#" onclick="logout()" style="color:#ff9800;">Logout (${currentUser.name})</a>`;
+            }
+            
+            // Dashboard link already hai
+            if(dashboardLink) {
+                dashboardLink.style.display = 'inline-block';
+            }
+        })();
+
+        /* 3. LOGOUT FUNCTION */
+        function logout() {
+            if(confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('currentUser');
+                alert('✅ Logged out successfully!');
+                window.location.href = 'log.html';
+            }
+            return false;
+        }
+
+        /* 4. CHECK IF EDITING */
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            
+            if(editId) {
+                document.getElementById('formTitle').textContent = '✏️ Edit Property';
+                document.getElementById('submitBtn').textContent = 'Update Property';
+                
+                // Load property data
+                const allProps = JSON.parse(localStorage.getItem('allProperties') || '[]');
+                const prop = allProps.find(p => p.id === editId);
+                
+                if(prop) {
+                    document.getElementById('title').value = prop.title || '';
+                    document.getElementById('type').value = prop.type || 'apartment';
+                    document.getElementById('purpose').value = prop.purpose || 'rent';
+                    document.getElementById('price').value = prop.price || '';
+                    document.getElementById('deposit').value = prop.deposit || '2';
+                    document.getElementById('bedrooms').value = prop.bedrooms || '';
+                    document.getElementById('bathrooms').value = prop.bathrooms || '';
+                    document.getElementById('area').value = prop.area || '';
+                    document.getElementById('furnishing').value = prop.furnishing || 'full';
+                    document.getElementById('address').value = prop.address || '';
+                    document.getElementById('city').value = prop.city || '';
+                    document.getElementById('description').value = prop.description || '';
+                    document.getElementById('amenities').value = (prop.amenities || []).join(', ');
+                }
+            }
+        })();
+
+        /* 5. IMAGE PREVIEW */
+        document.getElementById('images').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = '';
+            
+            // Max 10 images
+            if(this.files.length > 10) {
+                alert('❌ Maximum 10 images allowed');
+                this.value = '';
+                return;
+            }
+            
+            for(let i = 0; i < this.files.length; i++) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-img';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(this.files[i]);
+            }
+        });
+
+        /* 6. SAVE/UPDATE PROPERTY */
+        document.getElementById('propertyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get current user again
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            // Basic validation
+            const title = document.getElementById('title').value;
+            const price = document.getElementById('price').value;
+            const bedrooms = document.getElementById('bedrooms').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            
+            if(!title) {
+                alert('❌ Please enter property title');
+                return;
+            }
+            
+            if(!price || price < 1000) {
+                alert('❌ Please enter valid rent amount (min ₹1000)');
+                return;
+            }
+            
+            if(!bedrooms || bedrooms < 1) {
+                alert('❌ Please enter number of bedrooms');
+                return;
+            }
+            
+            if(!address) {
+                alert('❌ Please enter address');
+                return;
+            }
+            
+            if(!city) {
+                alert('❌ Please enter city');
+                return;
+            }
+            
+            // Check if editing
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            
+            const propertyData = {
+                id: editId || ('PROP' + Date.now()),
+                ownerId: currentUser.id,
+                ownerName: currentUser.name,
+                title: title,
+                type: document.getElementById('type').value,
+                purpose: document.getElementById('purpose').value,
+                price: Number(price),
+                deposit: document.getElementById('deposit').value,
+                bedrooms: bedrooms,
+                bathrooms: document.getElementById('bathrooms').value,
+                area: document.getElementById('area').value,
+                furnishing: document.getElementById('furnishing').value,
+                address: address,
+                city: city,
+                description: document.getElementById('description').value,
+                amenities: document.getElementById('amenities').value ? 
+                    document.getElementById('amenities').value.split(',').map(a => a.trim()) : [],
+                status: 'pending',
+                dateAdded: new Date().toISOString(),
+                views: 0,
+                saves: 0
+            };
+            
+            let allProps = JSON.parse(localStorage.getItem('allProperties') || '[]');
+            
+            if(editId) {
+                // Update existing - keep old views/saves
+                const oldProp = allProps.find(p => p.id === editId);
+                propertyData.views = oldProp?.views || 0;
+                propertyData.saves = oldProp?.saves || 0;
+                propertyData.dateAdded = oldProp?.dateAdded || new Date().toISOString();
+                
+                allProps = allProps.map(p => p.id === editId ? propertyData : p);
+                alert('✅ Property updated successfully!');
+            } else {
+                // Add new
+                allProps.push(propertyData);
+                alert('✅ Property added successfully! Pending approval.');
+            }
+            
+            localStorage.setItem('allProperties', JSON.stringify(allProps));
+            window.location.href = 'owner-dashboard.html';
+        });
+
+        /* 7. ACTIVE NAVIGATION */
+        (function() {
+            const currentPage = 'add-property.html';
+            document.querySelectorAll('nav a').forEach(link => {
+                const href = link.getAttribute('href');
+                if(href && href.includes(currentPage)) {
+                    link.style.color = '#ff9800';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us - Apna Ghar</title>
+
+<style>
+
+:root {
+    --bg-primary: #f5f5f5;
+    --text-primary: #333333;
+    --card-bg: #ffffff;
+    --header-bg: #2c3e50;
+    --border-color: #ccc;
+    --shadow: 0 0 10px rgba(0,0,0,0.1);
+    --success: #27ae60;
+    --primary: #ff9800;
+    --secondary: #3498db;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --text-primary: #ffffff;
+    --card-bg: #2d2d2d;
+    --header-bg: #1e1e1e;
+    --border-color: #444;
+    --shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:var(--bg-primary);
+color:var(--text-primary);
+margin-top:80px;
+transition:0.3s;
+}
+
+/* HEADER */
+header{
+background:var(--header-bg);
+color:beige;
+padding:10px 0;
+position:fixed;
+top:0;
+width:100%;
+z-index:1000;
+}
+
+.nav-container{
+width:90%;
+max-width:1100px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{
+display:flex;
+align-items:center;
+font-size:1.4rem;
+font-weight:bold;
+color:white;
+}
+
+.logo img{
+height:40px;
+margin-right:8px;
+border-radius:100px;
+}
+
+nav a{
+color:white;
+margin-left:20px;
+text-decoration:none;
+font-weight:bold;
+}
+
+nav a:hover{
+text-decoration:underline;
+}
+
+nav a.active{
+background:#ff9800;
+border-radius:5px;
+padding:5px 10px;
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+/* CONTACT SECTION */
+.contact-section{
+display:flex;
+flex-wrap:wrap;
+padding:40px;
+background:var(--card-bg);
+margin:30px auto;
+max-width:1100px;
+border-radius:8px;
+box-shadow:var(--shadow);
+}
+
+.contact-form,.contact-info{
+flex:1;
+padding:20px;
+min-width:300px;
+}
+
+.contact-form h2,.contact-info h2{
+margin-bottom:20px;
+color:var(--primary);
+}
+
+label{
+font-weight:bold;
+display:block;
+margin-top:15px;
+color:var(--text-primary);
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid var(--border-color);
+border-radius:4px;
+font-size:1rem;
+background:var(--card-bg);
+color:var(--text-primary);
+}
+
+input:focus, textarea:focus{
+outline:2px solid var(--primary);
+border-color:transparent;
+}
+
+button{
+margin-top:20px;
+background:var(--success);
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:5px;
+font-size:1rem;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#219150;
+transform:translateY(-2px);
+}
+
+.counter{
+font-size:12px;
+color:#777;
+text-align:right;
+margin-top:5px;
+}
+
+/* CONTACT INFO */
+.contact-info p{
+margin-bottom:15px;
+font-size:1rem;
+display:flex;
+align-items:center;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.contact-info button{
+margin:0;
+padding:5px 10px;
+font-size:12px;
+background:var(--secondary);
+}
+
+.map iframe{
+width:100%;
+height:300px;
+border:0;
+border-radius:8px;
+}
+
+/* WHATSAPP BUTTON */
+.whatsapp-btn{
+display:inline-block;
+background:#25D366;
+color:white;
+padding:10px 20px;
+margin-top:15px;
+border-radius:5px;
+text-decoration:none;
+font-weight:bold;
+transition:0.3s;
+}
+
+.whatsapp-btn:hover{
+transform:scale(1.05);
+background:#128C7E;
+}
+
+/* ===== FEATURE 1: BUSINESS HOURS ===== */
+.business-hours {
+    background: linear-gradient(135deg, rgba(255,152,0,0.1), rgba(255,152,0,0.05));
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid var(--primary);
+}
+
+.business-hours h3 {
+    color: var(--primary);
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.business-hours p {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hour-badge {
+    background: var(--primary);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    margin-left: 10px;
+}
+
+/* ===== FEATURE 2: RESPONSE GUARANTEE ===== */
+.response-guarantee {
+    text-align: center;
+    margin: 25px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.response-guarantee::before {
+    content: '⚡';
+    position: absolute;
+    font-size: 5rem;
+    right: 10px;
+    bottom: -10px;
+    opacity: 0.2;
+    transform: rotate(15deg);
+}
+
+.response-guarantee h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.response-guarantee p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.guarantee-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 5px 15px;
+    border-radius: 50px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* ===== FEATURE 3: CONTACT STATS ===== */
+.contact-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 15px 10px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: 0.3s;
+    border: 1px solid var(--border-color);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.stat-card h4 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stat-card p {
+    margin: 5px 0 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.stat-icon {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+/* ===== FEATURE 4: QUICK FEEDBACK ===== */
+.quick-feedback {
+    text-align: center;
+    margin: 25px 0;
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.quick-feedback h3 {
+    color: var(--primary);
+    margin: 0 0 15px 0;
+}
+
+.emoji-rating {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 15px 0;
+}
+
+.emoji-rating span {
+    cursor: pointer;
+    transition: 0.3s;
+    filter: grayscale(0.5);
+    opacity: 0.7;
+}
+
+.emoji-rating span:hover {
+    transform: scale(1.2);
+    filter: grayscale(0);
+    opacity: 1;
+}
+
+.rating-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    background: rgba(39,174,96,0.1);
+    color: var(--success);
+    display: none;
+}
+
+/* ===== FEATURE 5: DIRECTIONS ===== */
+.directions-section {
+    margin: 25px 0;
+}
+
+.directions-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--secondary);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+    border: none;
+    width: 100%;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.directions-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52,152,219,0.3);
+}
+
+.directions-btn i {
+    font-size: 1.2rem;
+}
+
+.directions-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.direction-option {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.direction-option:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* SUCCESS POPUP */
+#successMsg{
+display:none;
+background:var(--success);
+color:white;
+padding:10px;
+margin-top:15px;
+border-radius:5px;
+text-align:center;
+}
+
+/* FOOTER */
+footer{
+background:var(--header-bg);
+color:white;
+text-align:center;
+padding:20px;
+margin-top:30px;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+    .nav-container{
+        flex-direction:column;
+    }
+    nav{
+        margin:10px 0;
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+    nav a{
+        margin:5px;
+    }
+    .contact-stats {
+        grid-template-columns: 1fr;
+    }
+    .directions-options {
+        flex-direction: column;
+    }
+}
+
+</style>
+</head>
+
+<body>
+    
+    <header>
+<div class="nav-container">
+    
+<div class="logo">
+<img src="/image/logo.jpg" alt="Logo">Apna Ghar
+</div>
+
+<nav>
+<a href="home.html">Home</a>
+<a href="services.html">Services</a>
+<a href="aboutus.html">About Us</a>
+<a href="contact.html" class="active">Contact</a>
+<a href="owner-dashboard.html" id="ownerDashboardLink" style="display:none;">Dashboard</a>
+<a href="log.html" id="loginLink">Login</a>
+<a href="signup.html" id="signupLink">Sign Up</a>
+<span id="logoutLink" style="display:none;"></span>
+</nav>
+
+<button id="theme-toggle">🌙</button>
+
+</div>
+</header>
+
+<div class="contact-section">
+
+<!-- CONTACT FORM -->
+<div class="contact-form">
+
+<h2>📧 Send Us a Message</h2>
+
+<form id="contactForm">
+
+<label>Full Name</label>
+<input type="text" id="name" placeholder="Your name" required>
+
+<label>Email</label>
+<input type="email" id="email" placeholder="Your email" required>
+
+<label>Message</label>
+<textarea id="message" rows="5" maxlength="200" placeholder="Write your message..." required></textarea>
+
+<div class="counter">
+<span id="charCount">0</span>/200
+</div>
+
+<button type="submit" id="sendBtn">Send Message</button>
+
+<div id="successMsg">✅ Message sent successfully!</div>
+
+</form>
+
+</div>
+
+<!-- CONTACT INFO -->
+<div class="contact-info">
+
+<h2>📍 Contact Information</h2>
+
+<p>
+<strong>📞 Phone:</strong> 
+<a href="tel:+911122334455">+91 11 2233 4455</a>
+</p>
+
+<p>
+<strong>📧 Email:</strong> 
+<span id="emailText">support@apnaghar.com</span>
+<button onclick="copyEmail()">Copy</button>
+</p>
+
+<p>
+<strong>🏠 Address:</strong> 
+Chattrashal Churaha, Chhatarpur, MP - 471001
+</p>
+
+<a class="whatsapp-btn" 
+href="https://wa.me/911122334455" 
+target="_blank">
+💬 Chat on WhatsApp
+</a>
+
+<!-- FEATURE 1: BUSINESS HOURS -->
+<div class="business-hours">
+    <h3>🕒 Business Hours</h3>
+    <p>📅 Monday - Friday <span class="hour-badge">9:00 AM - 8:00 PM</span></p>
+    <p>📅 Saturday <span class="hour-badge">10:00 AM - 6:00 PM</span></p>
+    <p>📅 Sunday <span class="hour-badge" style="background:#e74c3c;">Closed</span></p>
+    <p style="font-size:0.9rem; margin-top:10px;">⏰ We're available 24/7 for emergency support!</p>
+</div>
+
+<!-- FEATURE 2: RESPONSE GUARANTEE -->
+<div class="response-guarantee">
+    <h3>⚡ Response Guarantee</h3>
+    <p>We reply within 15 minutes during business hours</p>
+    <div class="guarantee-badge">Average: 8 minutes</div>
+</div>
+
+<!-- FEATURE 3: CONTACT STATS -->
+<div class="contact-stats">
+    <div class="stat-card">
+        <div class="stat-icon">📞</div>
+        <h4>24/7</h4>
+        <p>Support Available</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <h4>15min</h4>
+        <p>Avg Response</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <h4>98%</h4>
+        <p>Satisfaction</p>
+    </div>
+</div>
+
+<!-- FEATURE 4: QUICK FEEDBACK -->
+<div class="quick-feedback">
+    <h3>😊 How was your experience?</h3>
+    <div class="emoji-rating">
+        <span onclick="rateSupport(1)">😠</span>
+        <span onclick="rateSupport(2)">😐</span>
+        <span onclick="rateSupport(3)">😊</span>
+        <span onclick="rateSupport(4)">😄</span>
+        <span onclick="rateSupport(5)">🤩</span>
+    </div>
+    <div id="ratingMessage" class="rating-message"></div>
+</div>
+
+<!-- FEATURE 5: DIRECTIONS -->
+<div class="directions-section">
+    <a href="https://maps.google.com/?q=Chattrashal+Churaha+Chhatarpur" 
+       target="_blank" class="directions-btn">
+        <span>🗺️</span> Get Directions on Google Maps
+    </a>
+    <div class="directions-options">
+        <a href="https://maps.google.com/?daddr=Chattrashal+Churaha+Chhatarpur&travelmode=driving" 
+           target="_blank" class="direction-option">🚗 Drive</a>
+        <a href="https://maps.google.com/?daddr=Chattrashal+Churaha+Chhatarpur&travelmode=transit" 
+           target="_blank" class="direction-option">🚇 Metro/Bus</a>
+        <a href="https://maps.google.com/?daddr=Chattrashal+Churaha+Chhatarpur&travelmode=walking" 
+           target="_blank" class="direction-option">🚶 Walk</a>
+    </div>
+</div>
+
+<div class="map">
+<iframe 
+src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3618.757816934108!2d79.58158107401354!3d24.906241243426727!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x398297dd4b25fcaf%3A0x6ef7eb69a8c6cc43!2sChhatrasal%20Chowk%2C%20Chhatarpur%2C%20Madhya%20Pradesh%20471001!5e0!3m2!1sen!2sin" 
+allowfullscreen="" loading="lazy">
+</iframe>
+</div>
+
+</div>
+</div>
+
+<footer>
+© 2025 Apna Ghar. All rights reserved.
+</footer>
+
+<script>
+// ========== CONTACT PAGE WITH ALL FEATURES ==========
+
+/* 1. THEME MANAGEMENT */
+(function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const themeBtn = document.getElementById('theme-toggle');
+    if(themeBtn) {
+        themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeBtn.onclick = function() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        };
+    }
+})();
+
+/* 2. LOGIN/DASHBOARD LINKS */
+(function() {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    console.log('Contact page - Current user:', user);
+    
+    const dashboardLink = document.getElementById('ownerDashboardLink');
+    const loginLink = document.getElementById('loginLink');
+    const signupLink = document.getElementById('signupLink');
+    const logoutSpan = document.getElementById('logoutLink');
+    
+    if(user) {
+        if(loginLink) loginLink.style.display = 'none';
+        if(signupLink) signupLink.style.display = 'none';
+        
+        if(logoutSpan) {
+            logoutSpan.style.display = 'inline-block';
+            logoutSpan.innerHTML = `<a href="#" onclick="logout()">Logout (${user.name})</a>`;
+        }
+        
+        if(dashboardLink && user.role === 'owner') {
+            dashboardLink.style.display = 'inline-block';
+        }
+    } else {
+        if(loginLink) loginLink.style.display = 'inline-block';
+        if(signupLink) signupLink.style.display = 'inline-block';
+        if(logoutSpan) logoutSpan.style.display = 'none';
+        if(dashboardLink) dashboardLink.style.display = 'none';
+    }
+})();
+
+/* 3. LOGOUT FUNCTION */
+function logout() {
+    if(confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('currentUser');
+        alert('✅ Logged out successfully!');
+        window.location.href = 'home.html';
+    }
+}
+
+/* 4. ACTIVE NAVIGATION */
+(function() {
+    const currentPage = 'contact.html';
+    document.querySelectorAll('nav a').forEach(link => {
+        if(link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        }
+    });
+})();
+
+/* 5. CHARACTER COUNTER */
+const message = document.getElementById("message");
+const charCount = document.getElementById("charCount");
+
+if(message && charCount) {
+    message.addEventListener("input", () => {
+        charCount.innerText = message.value.length;
+        
+        if(message.value.length > 180) {
+            charCount.style.color = 'orange';
+        } else if(message.value.length > 195) {
+            charCount.style.color = 'red';
+        } else {
+            charCount.style.color = '#777';
+        }
+    });
+}
+
+/* 6. FORM VALIDATION */
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const msg = document.getElementById("message").value.trim();
+    const sendBtn = document.getElementById("sendBtn");
+    
+    if(name.length < 3) {
+        alert("❌ Name must be at least 3 characters");
+        return;
+    }
+    
+    if(!email.includes('@') || !email.includes('.')) {
+        alert("❌ Please enter a valid email");
+        return;
+    }
+    
+    if(msg.length < 5) {
+        alert("❌ Message too short (min 5 characters)");
+        return;
+    }
+    
+    const contactData = {
+        name: name,
+        email: email,
+        message: msg,
+        date: new Date().toLocaleString()
+    };
+    
+    let messages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
+    messages.push(contactData);
+    localStorage.setItem('contactMessages', JSON.stringify(messages));
+    
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = '0.5';
+    document.getElementById("successMsg").style.display = "block";
+    
+    setTimeout(() => {
+        document.getElementById("contactForm").reset();
+        document.getElementById("charCount").innerText = "0";
+        document.getElementById("successMsg").style.display = "none";
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        alert('✅ Message sent! We\'ll reply soon.');
+    }, 2000);
+});
+
+/* 7. COPY EMAIL */
+function copyEmail() {
+    const email = document.getElementById("emailText").innerText;
+    
+    navigator.clipboard.writeText(email).then(() => {
+        alert("📋 Email copied to clipboard!");
+    }).catch(() => {
+        alert("❌ Could not copy email");
+    });
+}
+
+/* 8. RATING FUNCTION */
+function rateSupport(rating) {
+    let message = "";
+    let emoji = "";
+    
+    switch(rating) {
+        case 1: 
+            message = "😠 Sorry to hear that! We'll work harder to improve.";
+            emoji = "😠";
+            break;
+        case 2: 
+            message = "😐 Thanks for feedback! We'll do better next time.";
+            emoji = "😐";
+            break;
+        case 3: 
+            message = "😊 Glad you're satisfied! Thanks for your feedback.";
+            emoji = "😊";
+            break;
+        case 4: 
+            message = "😄 Thanks for the great rating! We appreciate it.";
+            emoji = "😄";
+            break;
+        case 5: 
+            message = "🤩 Wow! Thank you so much! You made our day!";
+            emoji = "🤩";
+            break;
+    }
+    
+    const ratingMsg = document.getElementById('ratingMessage');
+    ratingMsg.style.display = 'block';
+    ratingMsg.innerHTML = `${emoji} ${message}`;
+    
+    setTimeout(() => {
+        ratingMsg.style.display = 'none';
+    }, 3000);
+    
+    // Save rating
+    let ratings = JSON.parse(localStorage.getItem('ratings') || '[]');
+    ratings.push({rating: rating, date: new Date().toISOString()});
+    localStorage.setItem('ratings', JSON.stringify(ratings));
+}
+
+/* 9. AUTO-DISMISS SUCCESS MESSAGE */
+let successMsg = document.getElementById("successMsg");
+if(successMsg) {
+    successMsg.addEventListener('click', function() {
+        this.style.display = 'none';
+    });
+}
+</script>
+
+</body>
+</html>
