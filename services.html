@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - Apna Ghar</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #ff9800;
+            --primary-dark: #f57c00;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --bg-light: #f5f5f5;
+            --bg-dark: #1a1a1a;
+            --card-light: #ffffff;
+            --card-dark: #2d2d2d;
+            --text-dark: #333;
+            --text-light: #666;
+            --header-bg: #2c3e50;
+        }
+        
+        [data-theme="dark"] {
+            --bg-light: #1a1a1a;
+            --card-light: #2d2d2d;
+            --text-dark: #fff;
+            --text-light: #ccc;
+            --header-bg: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin-top: 70px;
+            transition: 0.3s;
+        }
+        
+        header {
+            background: var(--header-bg);
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 8px;
+            border-radius: 100px;
+        }
+        
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        nav a:hover { text-decoration: underline; }
+        nav a.active { color: #ff9800; }
+        
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 15px;
+            color: white;
+        }
+        
+        .services-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: var(--primary);
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter-input {
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            background: var(--card-light);
+            color: var(--text-dark);
+            min-width: 180px;
+            font-size: 0.9rem;
+        }
+        
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        
+        .property-card {
+            background: var(--card-light);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        
+        .property-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-image {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: 0.3s;
+        }
+        
+        .property-card:hover .card-image img {
+            transform: scale(1.05);
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .card-location {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin: 5px 0;
+        }
+        
+        .card-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--success);
+            margin: 10px 0;
+        }
+        
+        .card-features {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-booked { background: var(--success); color: white; cursor: default; opacity: 0.7; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-light);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: var(--card-light);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .modal-header h2 { color: var(--primary); }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        /* Image Slider Styles */
+.image-slider {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.slider-container {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+.slider-images {
+    display: flex;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.slider-images img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 5px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.slider-btn:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+.slider-prev { left: 5px; }
+.slider-next { right: 5px; }
+
+.slider-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+}
+
+.slider-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.slider-dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+.image-count-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    z-index: 10;
+}
+        
+        footer {
+            background: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container { flex-direction: column; }
+            nav { margin: 10px 0; display: flex; flex-wrap: wrap; justify-content: center; }
+            nav a { margin: 5px; }
+            .filter-bar { gap: 10px; }
+            .filter-input { min-width: 140px; padding: 8px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html" class="active">Services</a>
+                <a href="aboutus.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="customer-dashboard.html">Dashboard</a>
+                <a href="#" id="logoutLink" style="display:none;">Logout</a>
+                <a href="login.html" id="loginLink">Login</a>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="services-container">
+        <h1 class="page-title">🏠 Find Your Dream Property</h1>
+        
+        <div class="filter-bar">
+            <input type="text" id="searchCity" class="filter-input" placeholder="🔍 Search by city..." onkeyup="filterProperties()">
+            <select id="filterBHK" class="filter-input" onchange="filterProperties()">
+                <option value="">All BHK</option>
+                <option value="1">1 BHK</option>
+                <option value="2">2 BHK</option>
+                <option value="3">3 BHK</option>
+                <option value="4">4+ BHK</option>
+            </select>
+            <select id="filterPrice" class="filter-input" onchange="filterProperties()">
+                <option value="">All Prices</option>
+                <option value="0-10000">₹0 - ₹10,000</option>
+                <option value="10000-20000">₹10,000 - ₹20,000</option>
+                <option value="20000-30000">₹20,000 - ₹30,000</option>
+                <option value="30000-50000">₹30,000 - ₹50,000</option>
+                <option value="50000-999999">₹50,000+</option>
+            </select>
+        </div>
+        
+        <div id="propertiesList" class="property-grid">
+            <div class="empty-state">Loading properties...</div>
+        </div>
+    </div>
+
+    <!-- Property Detail Modal -->
+    <div class="modal" id="propertyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Property Details</h2>
+                <button class="close-modal" onclick="closeModal()">✖</button>
+            </div>
+            <div id="modalBody"></div>
+            <div class="action-buttons" id="modalButtons"></div>
+        </div>
+    </div>
+
+    <footer>© 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+            authDomain: "apnaghar-3.firebaseapp.com",
+            projectId: "apnaghar-3",
+            storageBucket: "apnaghar-3.firebasestorage.app",
+            messagingSenderId: "612810268433",
+            appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let allProperties = [];
+        let currentUser = null;
+        let userBookings = [];
+        let currentProperty = null;
+        
+        // ========== THEME ==========
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                themeBtn.onclick = () => {
+                    const curr = document.documentElement.getAttribute('data-theme');
+                    const newTheme = curr === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+        
+        // ========== AUTH ==========
+        auth.onAuthStateChanged(async (user) => {
+            const loginLink = document.getElementById('loginLink');
+            const logoutLink = document.getElementById('logoutLink');
+            
+            if (user) {
+                currentUser = user;
+                if (loginLink) loginLink.style.display = 'none';
+                if (logoutLink) {
+                    logoutLink.style.display = 'inline-block';
+                    logoutLink.onclick = async () => {
+                        await auth.signOut();
+                        window.location.href = 'home.html';
+                    };
+                }
+                await loadUserBookings();
+            } else {
+                if (loginLink) loginLink.style.display = 'inline-block';
+                if (logoutLink) logoutLink.style.display = 'none';
+                userBookings = [];
+            }
+            await fetchProperties();
+        });
+        
+        async function fetchProperties() {
+            try {
+                const snapshot = await db.collection("properties").where("status", "==", "active").get();
+                allProperties = [];
+                for (const doc of snapshot.docs) {
+                    const prop = { id: doc.id, ...doc.data() };
+                    if (prop.ownerId) {
+                        const ownerDoc = await db.collection("users").where("uid", "==", prop.ownerId).get();
+                        ownerDoc.forEach(od => { prop.owner = od.data(); });
+                    }
+                    allProperties.push(prop);
+                }
+                displayProperties(allProperties);
+            } catch(e) {
+                console.error(e);
+                document.getElementById('propertiesList').innerHTML = '<div class="empty-state">Error loading properties</div>';
+            }
+        }
+        
+        async function loadUserBookings() {
+            if (!currentUser) return;
+            try {
+                const snapshot = await db.collection("bookings").where("tenantId", "==", currentUser.uid).where("status", "==", "active").get();
+                userBookings = [];
+                snapshot.forEach(doc => userBookings.push(doc.data().propertyId));
+            } catch(e) { console.error(e); }
+        }
+        
+       function displayProperties(properties) {
+    const container = document.getElementById('propertiesList');
+    if (properties.length === 0) {
+        container.innerHTML = '<div class="empty-state">🏠 No properties found</div>';
+        return;
+    }
+    
+    let html = '';
+    properties.forEach(prop => {
+        const isBooked = userBookings.includes(prop.id);
+        const images = prop.images || [];
+        const imageCount = images.length;
+        const mainImage = images[0] || 'https://via.placeholder.com/300x200?text=No+Image';
+        
+        // Generate slider HTML
+        let sliderHtml = '';
+        if (imageCount > 1) {
+            // Multiple images ke liye slider with arrows
+            let imagesHtml = '';
+            images.forEach(img => {
+                imagesHtml += `<img src="${img}" alt="${prop.title}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">`;
+            });
+            
+            let dotsHtml = '';
+            images.forEach((_, idx) => {
+                dotsHtml += `<span class="slider-dot ${idx === 0 ? 'active' : ''}" onclick="event.stopPropagation();goToImage('${prop.id}', ${idx})"></span>`;
+            });
+            
+            sliderHtml = `
+                <div class="image-slider" id="slider-${prop.id}">
+                    <div class="slider-container">
+                        <div class="slider-images" id="slider-images-${prop.id}">
+                            ${imagesHtml}
+                        </div>
+                        <button class="slider-btn slider-prev" onclick="event.stopPropagation();slideImage('${prop.id}', -1)">❮</button>
+                        <button class="slider-btn slider-next" onclick="event.stopPropagation();slideImage('${prop.id}', 1)">❯</button>
+                        <div class="slider-dots" id="dots-${prop.id}">
+                            ${dotsHtml}
+                        </div>
+                        <div class="image-count-badge">${imageCount} photos</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Single image ke liye simple image
+            sliderHtml = `
+                <div class="image-slider">
+                    <img src="${mainImage}" alt="${prop.title}" style="width:100%; height:200px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="property-card" data-property-id="${prop.id}" onclick="openPropertyDetails('${prop.id}')">
+                ${sliderHtml}
+                <div class="card-content">
+                    <div class="card-title">${prop.title}</div>
+                    <div class="card-location">📍 ${prop.address}, ${prop.city}</div>
+                    <div class="card-price">₹${prop.price?.toLocaleString()} <span>/month</span></div>
+                    <div class="card-features">
+                        <span>🛏️ ${prop.bedrooms} BHK</span>
+                        <span>🚽 ${prop.bathrooms} Bath</span>
+                        <span>📏 ${prop.area} sqft</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="event.stopPropagation();bookPropertyDirectly('${prop.id}')">📖 Book Now</button>
+                        <button class="btn btn-info" onclick="event.stopPropagation();viewPropertyDetails('${prop.id}')">🔍 View Details</button>
+                    </div>
+                    ${isBooked ? '<div class="btn-booked" style="margin-top:10px;padding:10px;text-align:center;">✅ Already Booked</div>' : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+    // ========== IMAGE SLIDER FUNCTIONS ==========
+let currentImageIndex = {};
+
+window.slideImage = function(propertyId, direction) {
+    const imagesContainer = document.getElementById(`slider-images-${propertyId}`);
+    if (!imagesContainer) return;
+    
+    const images = imagesContainer.querySelectorAll('img');
+    const totalImages = images.length;
+    if (totalImages <= 1) return;
+    
+    let currentIndex = currentImageIndex[propertyId] || 0;
+    let newIndex = currentIndex + direction;
+    
+    if (newIndex < 0) newIndex = totalImages - 1;
+    if (newIndex >= totalImages) newIndex = 0;
+    
+    currentImageIndex[propertyId] = newIndex;
+    
+    const slideWidth = images[0].clientWidth;
+    imagesContainer.style.transform = `translateX(-${newIndex * slideWidth}px)`;
+    
+    // Update dots
+    const dotsContainer = document.getElementById(`dots-${propertyId}`);
+    if (dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.slider-dot');
+        dots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === newIndex);
+        });
+    }
+};
+
+window.goToImage = function(propertyId, index) {
+    const imagesContainer = document.getElementById(`slider-images-${propertyId}`);
+    if (!imagesContainer) return;
+    
+    const images = imagesContainer.querySelectorAll('img');
+    if (index >= images.length) return;
+    
+    currentImageIndex[propertyId] = index;
+    const slideWidth = images[0].clientWidth;
+    imagesContainer.style.transform = `translateX(-${index * slideWidth}px)`;
+    
+    const dotsContainer = document.getElementById(`dots-${propertyId}`);
+    if (dotsContainer) {
+        const dots = dotsContainer.querySelectorAll('.slider-dot');
+        dots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === index);
+        });
+    }
+};
+
+// Book property directly
+window.bookPropertyDirectly = async function(propertyId) {
+    if (!currentUser) {
+        alert('❌ Please login first');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const property = allProperties.find(p => p.id === propertyId);
+    if (!property) return;
+    
+    const moveInDate = prompt('Enter expected move-in date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+    if (!moveInDate) return;
+    
+    const confirmBook = confirm(`Book ${property.title} for ₹${property.price}/month?`);
+    if (confirmBook) {
+        try {
+            let ownerName = 'Owner', ownerPhone = 'Not available';
+            if (property.ownerId) {
+                const ownerDoc = await db.collection("users").where("uid", "==", property.ownerId).get();
+                ownerDoc.forEach(od => {
+                    ownerName = od.data().name || 'Owner';
+                    ownerPhone = od.data().phone || 'Not available';
+                });
+            }
+            
+            await db.collection("bookings").add({
+                propertyId: property.id,
+                propertyTitle: property.title,
+                propertyPrice: property.price,
+                propertyImage: property.images?.[0] || '',
+                propertyAddress: `${property.address}, ${property.city}`,
+                propertyBedrooms: property.bedrooms,
+                propertyBathrooms: property.bathrooms,
+                propertyArea: property.area,
+                tenantId: currentUser.uid,
+                tenantName: currentUser.email,
+                ownerId: property.ownerId,
+                ownerName: ownerName,
+                ownerPhone: ownerPhone,
+                status: 'active',
+                bookedDate: new Date().toISOString(),
+                moveInDate: moveInDate
+            });
+            
+            alert('✅ Property booked successfully!');
+            await loadUserBookings();
+            await fetchProperties();
+        } catch(e) {
+            alert('Error: ' + e.message);
+        }
+    }
+};
+
+window.viewPropertyDetails = function(propertyId) {
+    openPropertyDetails(propertyId);
+};
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    for (const propertyId in currentImageIndex) {
+        const imagesContainer = document.getElementById(`slider-images-${propertyId}`);
+        if (imagesContainer) {
+            const images = imagesContainer.querySelectorAll('img');
+            if (images.length > 0) {
+                const slideWidth = images[0].clientWidth;
+                imagesContainer.style.transform = `translateX(-${currentImageIndex[propertyId] * slideWidth}px)`;
+            }
+        }
+    }
+});
+        
+        window.openPropertyDetails = async function(propertyId) {
+            currentProperty = allProperties.find(p => p.id === propertyId);
+            if (!currentProperty) return;
+            
+            const isBooked = userBookings.includes(propertyId);
+            const imgUrl = currentProperty.images?.[0] || '/image/placeholder.jpg';
+            const owner = currentProperty.owner;
+            
+            document.getElementById('modalTitle').innerHTML = currentProperty.title;
+            document.getElementById('modalBody').innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <img src="${imgUrl}" style="width:100%; border-radius:15px;" onerror="this.src='/image/placeholder.jpg'">
+                    <div><strong>📍 Location:</strong> ${currentProperty.address}, ${currentProperty.city}</div>
+                    <div><strong>💰 Rent:</strong> ₹${currentProperty.price?.toLocaleString()}/month</div>
+                    <div><strong>🛏️ Bedrooms:</strong> ${currentProperty.bedrooms} BHK</div>
+                    <div><strong>🚽 Bathrooms:</strong> ${currentProperty.bathrooms}</div>
+                    <div><strong>📏 Area:</strong> ${currentProperty.area} sqft</div>
+                    <div><strong>📝 Description:</strong> ${currentProperty.description || 'No description'}</div>
+                    <div><strong>👑 Owner:</strong> ${owner?.name || 'Owner'}</div>
+                    <div><strong>📞 Owner Contact:</strong> ${owner?.phone || 'Not available'}</div>
+                </div>
+            `;
+            
+            let buttonsHtml = '';
+            if (!isBooked && currentUser) {
+                buttonsHtml = `<button class="btn btn-primary" onclick="bookProperty()">📖 Book Now</button>`;
+            } else if (!isBooked && !currentUser) {
+                buttonsHtml = `<button class="btn btn-primary" onclick="alert('Please login first');window.location.href='login.html'">📖 Login to Book</button>`;
+            } else {
+                buttonsHtml = `<button class="btn btn-booked" disabled>✅ Already Booked</button>`;
+            }
+            
+            buttonsHtml += `<button class="btn btn-primary" onclick="closeModal()">Close</button>`;
+            document.getElementById('modalButtons').innerHTML = buttonsHtml;
+            document.getElementById('propertyModal').classList.add('active');
+        };
+        
+        window.bookProperty = async function() {
+            if (!currentUser) {
+                alert('Please login first');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            if (userBookings.includes(currentProperty.id)) {
+                alert('Already booked!');
+                closeModal();
+                return;
+            }
+            
+            const moveInDate = prompt('Enter expected move-in date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+            if (!moveInDate) return;
+            
+            const confirmBook = confirm(`Book ${currentProperty.title} for ₹${currentProperty.price}/month?`);
+            if (confirmBook) {
+                try {
+                    await db.collection("bookings").add({
+                        propertyId: currentProperty.id,
+                        propertyTitle: currentProperty.title,
+                        propertyPrice: currentProperty.price,
+                        propertyImage: currentProperty.images?.[0] || '',
+                        propertyAddress: `${currentProperty.address}, ${currentProperty.city}`,
+                        propertyBedrooms: currentProperty.bedrooms,
+                        propertyBathrooms: currentProperty.bathrooms,
+                        propertyArea: currentProperty.area,
+                        tenantId: currentUser.uid,
+                        tenantName: currentUser.email,
+                        ownerId: currentProperty.ownerId,
+                        ownerName: currentProperty.owner?.name || 'Owner',
+                        ownerPhone: currentProperty.owner?.phone || 'Not available',
+                        status: 'active',
+                        bookedDate: new Date().toISOString(),
+                        moveInDate: moveInDate
+                    });
+                    alert('✅ Property booked successfully! Check your dashboard.');
+                    userBookings.push(currentProperty.id);
+                    closeModal();
+                    await fetchProperties();
+                } catch(e) {
+                    alert('Error: ' + e.message);
+                }
+            }
+        };
+        
+        window.filterProperties = function() {
+            const searchCity = document.getElementById('searchCity').value.toLowerCase();
+            const filterBHK = document.getElementById('filterBHK').value;
+            const filterPrice = document.getElementById('filterPrice').value;
+            
+            let filtered = allProperties.filter(prop => {
+                if (searchCity && !prop.city?.toLowerCase().includes(searchCity)) return false;
+                if (filterBHK && prop.bedrooms != filterBHK) return false;
+                if (filterPrice) {
+                    const [min, max] = filterPrice.split('-');
+                    if (min && prop.price < parseInt(min)) return false;
+                    if (max && prop.price > parseInt(max)) return false;
+                }
+                return true;
+            });
+            displayProperties(filtered);
+        };
+        
+        window.closeModal = function() {
+            document.getElementById('propertyModal').classList.remove('active');
+            currentProperty = null;
+        };
+        
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+    </script>
+</body>
+</html>

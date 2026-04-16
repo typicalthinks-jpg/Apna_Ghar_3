@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Apna Ghar</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #ff9800;
+            --primary-dark: #f57c00;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --info: #3498db;
+            --bg-light: #f5f5f5;
+            --card-light: #ffffff;
+            --card-dark: #2d2d2d;
+            --text-dark: #333;
+            --text-light: #666;
+            --header-bg: #2c3e50;
+        }
+        
+        [data-theme="dark"] {
+            --bg-light: #1a1a1a;
+            --card-light: #2d2d2d;
+            --text-dark: #fff;
+            --text-light: #ccc;
+            --header-bg: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin-top: 70px;
+            transition: 0.3s;
+        }
+        
+        header {
+            background: var(--header-bg);
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .logo img { height: 40px; margin-right: 8px; border-radius: 100px; }
+        
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        nav a:hover { text-decoration: underline; }
+        nav a.active { color: #ff9800; }
+        
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .dashboard-container { max-width: 1200px; margin: 30px auto; padding: 20px; }
+        
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-card h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card-light);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); }
+        .stat-label { color: var(--text-light); font-size: 0.85rem; }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 8px 20px;
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            color: var(--text-dark);
+        }
+        
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .card {
+            background: var(--card-light);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--text-light);
+        }
+        
+        .card-title { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-signed { background: #d4edda; color: #155724; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        
+        .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: var(--card-light);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .agreement-content {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            padding: 20px;
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .sign-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+        
+        footer {
+            background: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container { flex-direction: column; }
+            nav { margin: 10px 0; display: flex; flex-wrap: wrap; justify-content: center; }
+            nav a { margin: 5px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .tab-btn { padding: 6px 12px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo"><img src="/image/logo.jpg" alt="Logo">Apna Ghar</div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="aboutus.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="customer-dashboard.html" class="active">Dashboard</a>
+                <a href="#" id="logoutLink" style="display:none;">Logout</a>
+                <a href="login.html" id="loginLink">Login</a>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="welcome-card">
+            <h1>🏠 Welcome, <span id="customerName">Customer</span>!</h1>
+            <p>Manage your bookings, sign agreements, pay rent, and more.</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card" onclick="switchTab('bookings')"><div class="stat-number" id="myBookings">0</div><div class="stat-label">My Bookings</div></div>
+            <div class="stat-card" onclick="switchTab('payments')"><div class="stat-number" id="totalPaid">₹0</div><div class="stat-label">Total Paid</div></div>
+            <div class="stat-card" onclick="switchTab('payments')"><div class="stat-number" id="pendingPayments">0</div><div class="stat-label">Pending Payments</div></div>
+            <div class="stat-card" onclick="switchTab('documents')"><div class="stat-number" id="uploadedDocs">0</div><div class="stat-label">Documents</div></div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('bookings')">📖 My Bookings</button>
+            <button class="tab-btn" onclick="switchTab('payments')">💰 Payments</button>
+            <button class="tab-btn" onclick="switchTab('maintenance')">🔧 Maintenance</button>
+            <button class="tab-btn" onclick="switchTab('documents')">📁 ID Proof</button>
+        </div>
+        
+        <!-- My Bookings Tab -->
+        <div id="bookingsTab" class="tab-content active">
+            <div id="bookingsList"><div class="empty-state">Loading your bookings...</div></div>
+        </div>
+        
+        <!-- Payments Tab -->
+        <div id="paymentsTab" class="tab-content">
+            <div id="paymentsList"><div class="empty-state">Loading payment history...</div></div>
+        </div>
+        
+        <!-- Maintenance Tab -->
+        <div id="maintenanceTab" class="tab-content">
+            <div class="card">
+                <h3>🔧 Raise Maintenance Request</h3>
+                <div class="form-group"><label>Select Property</label><select id="maintenanceProperty"></select></div>
+                <div class="form-group"><label>Issue Type</label>
+                    <select id="issueType"><option>AC Not Working</option><option>Plumbing Leakage</option><option>Electrical Issue</option><option>Pest Control</option><option>Other</option></select>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="issueDesc" rows="3" placeholder="Describe the issue..."></textarea></div>
+                <button class="btn btn-primary" onclick="raiseMaintenance()">Submit Request</button>
+            </div>
+            <div id="maintenanceList"><div class="empty-state">Your maintenance requests will appear here</div></div>
+        </div>
+        
+        <!-- Documents/ID Proof Tab -->
+        <div id="documentsTab" class="tab-content">
+            <div class="card">
+                <h3>📄 Upload ID Proof</h3>
+                <div class="form-group"><label>Document Type</label>
+                    <select id="docType"><option>Aadhar Card</option><option>PAN Card</option><option>Passport</option><option>Voter ID</option></select>
+                </div>
+                <div class="form-group"><label>Upload File</label><input type="file" id="docFile" accept=".pdf,.jpg,.png"></div>
+                <button class="btn btn-primary" onclick="uploadDocument()">📤 Upload</button>
+            </div>
+            <div id="documentsList"><div class="empty-state">No documents uploaded yet</div></div>
+        </div>
+    </div>
+
+    <!-- Agreement Modal -->
+    <div class="modal" id="agreementModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 Rental Agreement</h3>
+                <button onclick="closeAgreementModal()" style="background:none;border:none;font-size:20px;">✖</button>
+            </div>
+            <div id="agreementContent" class="agreement-content"></div>
+            <div class="sign-checkbox">
+                <input type="checkbox" id="acceptTerms"> 
+                <label>I have read and agree to all terms and conditions.</label>
+            </div>
+            <button class="btn btn-success" onclick="signAgreement()" style="width:100%;">✍️ Sign Agreement</button>
+        </div>
+    </div>
+
+    <!-- Payment QR Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>📱 Scan & Pay</h3><button onclick="closeQRModal()" style="background:none;border:none;font-size:20px;">✖</button></div>
+            <div id="qrCodeContainer" style="display:flex; justify-content:center; margin:20px 0;"></div>
+            <p id="qrAmount" style="text-align:center; font-weight:bold;"></p>
+            <div class="form-group"><input type="text" id="popupTransactionId" placeholder="Transaction ID"></div>
+            <button class="btn btn-success" onclick="submitPaymentFromPopup()" style="width:100%;">Confirm Payment</button>
+        </div>
+    </div>
+
+    <footer>© 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+            authDomain: "apnaghar-3.firebaseapp.com",
+            projectId: "apnaghar-3",
+            storageBucket: "apnaghar-3.firebasestorage.app",
+            messagingSenderId: "612810268433",
+            appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let currentUser = null;
+        let allProperties = [];
+        let ownersData = {};
+        let currentPayProperty = null;
+        let currentPayAmount = null;
+        let currentAgreementData = null;
+        
+        // Theme
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                themeBtn.onclick = () => {
+                    const curr = document.documentElement.getAttribute('data-theme');
+                    const newTheme = curr === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+        
+        // Auth State
+        auth.onAuthStateChanged(async (user) => {
+            const loginLink = document.getElementById('loginLink');
+            const logoutLink = document.getElementById('logoutLink');
+            
+            if (user) {
+                currentUser = user;
+                if (loginLink) loginLink.style.display = 'none';
+                if (logoutLink) {
+                    logoutLink.style.display = 'inline-block';
+                    logoutLink.onclick = async () => {
+                        await auth.signOut();
+                        window.location.href = 'home.html';
+                    };
+                }
+                
+                const userDoc = await db.collection("users").where("uid", "==", user.uid).get();
+                userDoc.forEach(doc => {
+                    document.getElementById('customerName').textContent = doc.data().name || 'Customer';
+                });
+                
+                await fetchProperties();
+                await loadOwnersData();
+                loadBookings();
+                loadPayments();
+                loadMaintenanceRequests();
+                loadMaintenanceSelect();
+                loadDocuments();
+                updateStats();
+            } else {
+                if (loginLink) loginLink.style.display = 'inline-block';
+                if (logoutLink) logoutLink.style.display = 'none';
+                alert('Please login');
+                window.location.href = 'login.html';
+            }
+        });
+        
+        async function fetchProperties() {
+            const snapshot = await db.collection("properties").get();
+            allProperties = [];
+            snapshot.forEach(doc => allProperties.push({ id: doc.id, ...doc.data() }));
+        }
+        
+        async function loadOwnersData() {
+            const ownerIds = [...new Set(allProperties.map(p => p.ownerId).filter(id => id))];
+            for (const oid of ownerIds) {
+                const ownerDoc = await db.collection("users").where("uid", "==", oid).get();
+                ownerDoc.forEach(d => ownersData[oid] = d.data());
+            }
+        }
+        
+        // ========== MY BOOKINGS ==========
+        async function loadBookings() {
+            const container = document.getElementById('bookingsList');
+            container.innerHTML = '<div class="empty-state">Loading...</div>';
+            
+            const snapshot = await db.collection("bookings")
+                .where("tenantId", "==", currentUser.uid)
+                .where("status", "==", "active")
+                .get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="empty-state">No bookings yet. <a href="services.html">Browse Properties</a></div>';
+                return;
+            }
+            
+            // Check which properties have signed agreements
+            const agreementsSnapshot = await db.collection("agreements").where("tenantId", "==", currentUser.uid).get();
+            const signedProperties = new Set();
+            agreementsSnapshot.forEach(doc => signedProperties.add(doc.data().propertyId));
+            
+            let html = '';
+            for (const doc of snapshot.docs) {
+                const booking = doc.data();
+                const isSigned = signedProperties.has(booking.propertyId);
+                const property = allProperties.find(p => p.id === booking.propertyId);
+                
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">🏠 ${booking.propertyTitle}</span>
+                            <span class="status-badge ${isSigned ? 'status-signed' : 'status-pending'}">${isSigned ? '✓ Signed' : 'Pending Sign'}</span>
+                        </div>
+                        <div>📍 ${booking.propertyAddress || 'Address not specified'}</div>
+                        <div>💰 Rent: ₹${booking.propertyPrice?.toLocaleString()}/month</div>
+                        <div>📅 Move-in: ${booking.moveInDate || 'Not specified'}</div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            ${!isSigned ? `<button class="btn btn-primary" onclick="viewAndSignAgreement('${booking.propertyId}', '${booking.propertyTitle}', ${booking.propertyPrice})">✍️ Sign Agreement</button>` : ''}
+                            <button class="btn btn-primary" onclick="payRent('${booking.propertyId}', ${booking.propertyPrice})">💰 Pay Rent</button>
+                            <button class="btn btn-danger" onclick="cancelBooking('${doc.id}')">❌ Cancel Booking</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
+        // ========== VIEW AND SIGN AGREEMENT ==========
+        window.viewAndSignAgreement = async function(propertyId, propertyTitle, rentAmount) {
+            const property = allProperties.find(p => p.id === propertyId);
+            const owner = ownersData[property?.ownerId];
+            
+            const agreementHTML = `
+                <h2 style="text-align:center;">RENTAL AGREEMENT</h2>
+                <p style="text-align:center;">Date: ${new Date().toLocaleDateString()}</p>
+                
+                <h3>1. Parties Involved</h3>
+                <p><strong>Owner:</strong> ${owner?.name || 'Owner'} (${owner?.email || 'N/A'})</p>
+                <p><strong>Tenant:</strong> ${currentUser.email}</p>
+                
+                <h3>2. Property Details</h3>
+                <p><strong>Property:</strong> ${propertyTitle}</p>
+                <p><strong>Address:</strong> ${property?.address}, ${property?.city}</p>
+                <p><strong>Specifications:</strong> ${property?.bedrooms} BHK, ${property?.bathrooms} Bath, ${property?.area} sqft</p>
+                
+                <h3>3. Financial Terms</h3>
+                <p><strong>Monthly Rent:</strong> ₹${rentAmount.toLocaleString()}</p>
+                <p><strong>Security Deposit:</strong> ₹${(rentAmount * 2).toLocaleString()} (2 months rent)</p>
+                <p><strong>Rent Due Date:</strong> 5th of every month</p>
+                
+                <h3>4. Agreement Terms</h3>
+                <p>• This agreement is valid for 11 months from the move-in date.</p>
+                <p>• Rent to be paid by 5th of each month. Late fee of ₹100/day applies.</p>
+                <p>• Security deposit refundable at the time of vacating, subject to deductions.</p>
+                <p>• Tenant shall not sublet the property without owner's consent.</p>
+                <p>• Either party can terminate with 1 month written notice.</p>
+                
+                <h3>5. Utilities & Maintenance</h3>
+                <p>• Electricity and water bills to be paid by tenant as per usage.</p>
+                <p>• Maintenance charges to be borne by owner.</p>
+                <p>• Minor repairs (up to ₹500) by tenant, major by owner.</p>
+                
+                <p style="margin-top: 30px;"><em>By signing this agreement, you agree to all the terms and conditions mentioned above.</em></p>
+            `;
+            
+            document.getElementById('agreementContent').innerHTML = agreementHTML;
+            currentAgreementData = { propertyId, propertyTitle, rentAmount };
+            document.getElementById('agreementModal').classList.add('active');
+        };
+        
+        window.closeAgreementModal = () => {
+            document.getElementById('agreementModal').classList.remove('active');
+            currentAgreementData = null;
+        };
+        
+        window.signAgreement = async function() {
+            const accepted = document.getElementById('acceptTerms').checked;
+            if (!accepted) {
+                alert('❌ Please accept the terms and conditions to sign the agreement.');
+                return;
+            }
+            
+            if (!currentAgreementData) return;
+            
+            try {
+                const property = allProperties.find(p => p.id === currentAgreementData.propertyId);
+                
+                const existingAgreement = await db.collection("agreements")
+                    .where("propertyId", "==", currentAgreementData.propertyId)
+                    .where("tenantId", "==", currentUser.uid)
+                    .get();
+                
+                if (!existingAgreement.empty) {
+                    const agreementDoc = existingAgreement.docs[0];
+                    await agreementDoc.ref.update({
+                        signedByTenant: true,
+                        signedAt: new Date().toISOString(),
+                        status: 'active'
+                    });
+                } else {
+                    await db.collection("agreements").add({
+                        propertyId: currentAgreementData.propertyId,
+                        propertyTitle: currentAgreementData.propertyTitle,
+                        tenantId: currentUser.uid,
+                        tenantName: currentUser.email,
+                        ownerId: property?.ownerId,
+                        rentAmount: currentAgreementData.rentAmount,
+                        signedByTenant: true,
+                        signedAt: new Date().toISOString(),
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + 11 * 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: 'active',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+                
+                // Download PDF after signing
+                await downloadAgreementPDF(currentAgreementData.propertyId, currentAgreementData.propertyTitle, currentAgreementData.rentAmount);
+                
+                alert('✅ Agreement signed successfully! PDF downloaded.');
+                closeAgreementModal();
+                loadBookings();
+                updateStats();
+                
+            } catch (error) {
+                console.error("Error:", error);
+                alert('❌ Error signing agreement: ' + error.message);
+            }
+        };
+        
+        // ========== DOWNLOAD AGREEMENT PDF ==========
+        window.downloadAgreementPDF = async function(propertyId, propertyTitle, rentAmount) {
+            const property = allProperties.find(p => p.id === propertyId);
+            const owner = ownersData[property?.ownerId];
+            
+            const pdfHTML = `
+                <div style="font-family: 'Times New Roman', serif; padding: 30px;">
+                    <h1 style="text-align: center;">RENTAL AGREEMENT</h1>
+                    <p style="text-align: center;">Date: ${new Date().toLocaleDateString()}</p>
+                    
+                    <h3>Parties Involved</h3>
+                    <p><strong>Owner:</strong> ${owner?.name || 'Owner'} (${owner?.email || 'N/A'})</p>
+                    <p><strong>Tenant:</strong> ${currentUser.email}</p>
+                    
+                    <h3>Property Details</h3>
+                    <p><strong>Property:</strong> ${propertyTitle}</p>
+                    <p><strong>Address:</strong> ${property?.address}, ${property?.city}</p>
+                    <p><strong>Rent:</strong> ₹${rentAmount?.toLocaleString()}/month</p>
+                    
+                    <h3>Terms & Conditions</h3>
+                    <p>1. Rent to be paid by 5th of every month.</p>
+                    <p>2. Security deposit: 2 months rent.</p>
+                    <p>3. Agreement valid for 11 months.</p>
+                    <p>4. One month notice for termination.</p>
+                    
+                    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+                        <div>_________________<br>Owner Signature</div>
+                        <div>_________________<br>Tenant Signature</div>
+                    </div>
+                    <p style="text-align: center; margin-top: 30px;">This is a computer-generated agreement.</p>
+                </div>
+            `;
+            
+            const element = document.createElement('div');
+            element.innerHTML = pdfHTML;
+            document.body.appendChild(element);
+            
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Rental_Agreement_${propertyTitle}_${new Date().toISOString().split('T')[0]}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save();
+            document.body.removeChild(element);
+        };
+        
+        window.cancelBooking = async function(bookingId) {
+            if (confirm('Cancel this booking?')) {
+                await db.collection("bookings").doc(bookingId).update({ status: 'cancelled', cancelledAt: new Date().toISOString() });
+                alert('Booking cancelled');
+                loadBookings();
+                updateStats();
+            }
+        };
+        
+        // ========== PAYMENTS ==========
+        async function loadPayments() {
+            const container = document.getElementById('paymentsList');
+            container.innerHTML = '<div class="empty-state">Loading...</div>';
+            
+            const snapshot = await db.collection("payments").where("tenantId", "==", currentUser.uid).orderBy("paymentDate", "desc").get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="empty-state">No payment history</div>';
+                return;
+            }
+            
+            let html = '';
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                const statusClass = p.status === 'approved' ? 'status-approved' : 'status-pending';
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span><strong>${p.propertyTitle}</strong> - ${p.month}</span>
+                            <span class="status-badge ${statusClass}">${p.status}</span>
+                        </div>
+                        <div>Amount: ₹${p.amount?.toLocaleString()} | TXID: ${p.transactionId}</div>
+                        <div>${new Date(p.paymentDate).toLocaleDateString()}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
+        window.payRent = async function(propertyId, amount) {
+    currentPayProperty = propertyId;
+    currentPayAmount = amount;
+    const property = allProperties.find(p => p.id === propertyId);
+    
+    // Get owner's QR code from Firestore
+    const ownerDoc = await db.collection("users").doc(property?.ownerId).get();
+    const ownerQRCode = ownerDoc.data()?.upiQRCode;
+    const ownerName = ownerDoc.data()?.name || 'Owner';
+    
+    const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    // If owner has QR code, show it directly
+    if (ownerQRCode) {
+        document.getElementById('qrCodeContainer').innerHTML = `
+            <div style="text-align: center;">
+                <img src="${ownerQRCode}" style="width: 200px; height: 200px; object-fit: contain; border: 2px solid #ff9800; border-radius: 10px; padding: 10px;">
+                <p style="margin-top: 10px;"><strong>Scan this QR code with any UPI app to pay</strong></p>
+                <p><strong>Pay to:</strong> ${ownerName}</p>
+                <p><strong>Amount:</strong> ₹${amount}</p>
+                <p><strong>Month:</strong> ${month}</p>
+            </div>
+        `;
+    } else {
+        // Fallback to UPI link if no QR code
+        const upi = ownerDoc.data()?.upiId || 'apnaghar@okhdfcbank';
+        const upiUrl = `upi://pay?pa=${upi}&pn=Apna Ghar&am=${amount}&tn=Rent ${month}&cu=INR`;
+        document.getElementById('qrCodeContainer').innerHTML = `
+            <div style="text-align: center;">
+                <div id="qrcode"></div>
+                <p style="margin-top: 10px;">Owner has not set QR code. Use UPI ID: ${upi}</p>
+                <a href="${upiUrl}" class="btn btn-primary" style="display: inline-block; margin-top: 10px;">Click to Pay</a>
+            </div>
+        `;
+        new QRCode(document.getElementById('qrcode'), { text: upiUrl, width: 200, height: 200 });
+    }
+    
+    document.getElementById('qrAmount').innerHTML = `Amount: ₹${amount}<br>Month: ${month}`;
+    document.getElementById('qrModal').classList.add('active');
+};    
+        // ========== MAINTENANCE ==========
+        async function loadMaintenanceSelect() {
+            const snapshot = await db.collection("bookings").where("tenantId", "==", currentUser.uid).where("status", "==", "active").get();
+            const select = document.getElementById('maintenanceProperty');
+            select.innerHTML = '<option value="">-- Select Property --</option>';
+            for (const doc of snapshot.docs) {
+                const booking = doc.data();
+                const opt = document.createElement('option');
+                opt.value = booking.propertyId;
+                opt.textContent = booking.propertyTitle;
+                select.appendChild(opt);
+            }
+        }
+        
+        window.raiseMaintenance = async function() {
+            const propertyId = document.getElementById('maintenanceProperty').value;
+            const issueType = document.getElementById('issueType').value;
+            const description = document.getElementById('issueDesc').value;
+            
+            if (!propertyId) { alert('Select property'); return; }
+            if (!description) { alert('Enter description'); return; }
+            
+            const property = allProperties.find(p => p.id === propertyId);
+            
+            await db.collection("maintenance").add({
+                propertyId: propertyId,
+                propertyTitle: property?.title,
+                tenantId: currentUser.uid,
+                issueType: issueType,
+                description: description,
+                status: 'open',
+                createdAt: new Date().toISOString()
+            });
+            
+            alert('Maintenance request submitted!');
+            document.getElementById('issueDesc').value = '';
+            loadMaintenanceRequests();
+        };
+        
+        async function loadMaintenanceRequests() {
+            const container = document.getElementById('maintenanceList');
+            container.innerHTML = '<div class="empty-state">Loading...</div>';
+            
+            const snapshot = await db.collection("maintenance").where("tenantId", "==", currentUser.uid).orderBy("createdAt", "desc").get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="empty-state">No maintenance requests</div>';
+                return;
+            }
+            
+            let html = '';
+            for (const doc of snapshot.docs) {
+                const req = doc.data();
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span>🔧 ${req.issueType}</span>
+                            <span class="status-badge status-pending">${req.status}</span>
+                        </div>
+                        <div><strong>Property:</strong> ${req.propertyTitle || 'N/A'}</div>
+                        <div>${req.description}</div>
+                        <div style="font-size:12px;">Requested: ${new Date(req.createdAt).toLocaleDateString()}</div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
+        // ========== DOCUMENTS / ID PROOF ==========
+        window.uploadDocument = async function() {
+            const docType = document.getElementById('docType').value;
+            const file = document.getElementById('docFile').files[0];
+            
+            if (!file) { alert('Please select a file'); return; }
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                await db.collection("documents").add({
+                    userId: currentUser.uid,
+                    docType: docType,
+                    fileName: file.name,
+                    fileData: e.target.result,
+                    uploadedAt: new Date().toISOString()
+                });
+                alert('✅ Document uploaded successfully!');
+                loadDocuments();
+                updateStats();
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        async function loadDocuments() {
+            const container = document.getElementById('documentsList');
+            container.innerHTML = '<div class="empty-state">Loading...</div>';
+            
+            const snapshot = await db.collection("documents").where("userId", "==", currentUser.uid).orderBy("uploadedAt", "desc").get();
+            
+            if (snapshot.empty) {
+                container.innerHTML = '<div class="empty-state">No documents uploaded. Upload your ID proof.</div>';
+                document.getElementById('uploadedDocs').textContent = '0';
+                return;
+            }
+            
+            let html = '';
+            let count = 0;
+            snapshot.forEach(doc => {
+                count++;
+                const d = doc.data();
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <span>📄 ${d.docType}</span>
+                            <button class="btn btn-info btn-sm" onclick="downloadDocument('${d.fileData}', '${d.docType}')">Download</button>
+                        </div>
+                        <div style="font-size:12px;">Uploaded: ${new Date(d.uploadedAt).toLocaleDateString()}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('uploadedDocs').textContent = count;
+            container.innerHTML = html;
+        }
+        
+        window.downloadDocument = function(fileData, docType) {
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = `${docType}_${new Date().toISOString().slice(0,10)}.pdf`;
+            link.click();
+        };
+        
+        // ========== STATS ==========
+        async function updateStats() {
+            const bookings = await db.collection("bookings").where("tenantId", "==", currentUser.uid).where("status", "==", "active").get();
+            document.getElementById('myBookings').textContent = bookings.size;
+            
+            const payments = await db.collection("payments").where("tenantId", "==", currentUser.uid).where("status", "==", "approved").get();
+            let total = 0;
+            payments.forEach(d => total += d.data().amount || 0);
+            document.getElementById('totalPaid').textContent = '₹' + total.toLocaleString();
+            
+            const pending = await db.collection("payments").where("tenantId", "==", currentUser.uid).where("status", "==", "pending").get();
+            document.getElementById('pendingPayments').textContent = pending.size;
+        }
+        
+        // ========== SWITCH TAB ==========
+        window.switchTab = function(tab) {
+            const tabs = ['bookingsTab', 'paymentsTab', 'maintenanceTab', 'documentsTab'];
+            tabs.forEach(t => document.getElementById(t).classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (tab === 'bookings') {
+                document.getElementById('bookingsTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                loadBookings();
+            } else if (tab === 'payments') {
+                document.getElementById('paymentsTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                loadPayments();
+            } else if (tab === 'maintenance') {
+                document.getElementById('maintenanceTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                loadMaintenanceRequests();
+            } else if (tab === 'documents') {
+                document.getElementById('documentsTab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                loadDocuments();
+            }
+        };
+        // ========== PAYMENT POPUP FUNCTIONS ==========
+window.closeQRModal = function() {
+    const modal = document.getElementById('qrModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    // Clear transaction ID
+    const txIdInput = document.getElementById('popupTransactionId');
+    if (txIdInput) txIdInput.value = '';
+};
+
+window.submitPaymentFromPopup = async function() {
+    const txid = document.getElementById('popupTransactionId').value;
+    if (!txid) {
+        alert('❌ Please enter Transaction ID');
+        return;
+    }
+    
+    if (!currentPayProperty || !currentPayAmount) {
+        alert('❌ Payment information missing');
+        return;
+    }
+    
+    const property = allProperties.find(p => p.id === currentPayProperty);
+    if (!property) {
+        alert('❌ Property not found');
+        return;
+    }
+    
+    try {
+        // Save payment to Firestore
+        await db.collection("payments").add({
+            propertyId: currentPayProperty,
+            propertyTitle: property.title,
+            ownerId: property.ownerId,
+            tenantId: currentUser.uid,
+            tenantName: currentUser.email,
+            amount: currentPayAmount,
+            month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
+            transactionId: txid,
+            status: 'pending',
+            paymentDate: new Date().toISOString()
+        });
+        
+        alert('✅ Payment submitted successfully! Owner will verify within 24 hours.');
+        closeQRModal();
+        
+        // Refresh payment history
+        if (typeof loadPayments === 'function') {
+            await loadPayments();
+        }
+        
+        // Update stats
+        if (typeof updateStats === 'function') {
+            await updateStats();
+        }
+        
+    } catch(error) {
+        console.error("Error submitting payment:", error);
+        alert('❌ Error submitting payment: ' + error.message);
+    }
+};
+    </script>
+</body>
+</html>

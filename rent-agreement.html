@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <title>Rent Agreement - Apna Ghar</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js"></script>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #ff9800;
+            --primary-dark: #f57c00;
+            --secondary: #667eea;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --bg-light: #f5f5f5;
+            --bg-dark: #1a1a1a;
+            --card-light: #ffffff;
+            --card-dark: #2d2d2d;
+            --text-dark: #333;
+            --text-light: #666;
+        }
+        
+        [data-theme="dark"] {
+            --bg-light: #1a1a1a;
+            --card-light: #2d2d2d;
+            --text-dark: #fff;
+            --text-light: #ccc;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin-top: 70px;
+            transition: 0.3s;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 8px;
+            border-radius: 100px;
+        }
+        
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        nav a.active {
+            color: #ff9800;
+        }
+        
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 15px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 30px;
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: 0.3s;
+            color: var(--text-dark);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: rgba(255,152,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .agreement-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .form-section {
+            background: var(--card-light);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .form-section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .form-group input:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+        
+        .phone-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .phone-prefix {
+            background: var(--bg-light);
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .phone-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--bg-light);
+        }
+        
+        .phone-input.valid {
+            border-color: var(--success);
+            border-width: 2px;
+        }
+        
+        .phone-hint {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+            display: block;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .preview-section {
+            background: var(--card-light);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 90px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        .preview-section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .agreement-preview, .receipt-preview {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .agreement-preview h1, .receipt-preview h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .signature-area {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            padding-top: 30px;
+            border-top: 1px dashed #999;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .info-note {
+            background: rgba(255,152,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        hr {
+            margin: 20px 0;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-approved { background: #27ae60; color: white; }
+        .status-pending { background: #ff9800; color: white; }
+        .status-rejected { background: #e74c3c; color: white; }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .qr-container img {
+            margin: 0 auto;
+        }
+        
+        .screenshot-preview {
+            margin-top: 10px;
+        }
+        
+        .screenshot-preview img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .payment-history-item {
+            background: var(--card-light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        
+        @media (max-width: 900px) {
+            .agreement-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .preview-section {
+                position: static;
+            }
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="aboutus.html">About</a>
+                <a href="contact.html">Contact</a>
+                <a href="owner-dashboard.html">Dashboard</a>
+                <a href="rent-agreement.html" class="active">Rent Agreement</a>
+                <a href="#" id="logoutLink" style="display:none;">Logout</a>
+                <a href="login.html"loginLink">Login</a>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tenant')">🏠 Tenant Agreement</button>
+            <button class="tab-btn" onclick="switchTab('owner')">👑 Owner Agreement</button>
+            <button class="tab-btn" onclick="switchTab('receipt')">🧾 Rent Receipt</button>
+            <button class="tab-btn" onclick="switchTab('payment')">💰 Pay Rent</button>
+        </div>
+        
+        <!-- Tenant Agreement Tab -->
+        <div id="tenantTab" class="tab-content active">
+            <div class="agreement-wrapper">
+                <div class="form-section">
+                    <h2>📝 Tenant Agreement</h2>
+                    <div class="form-group">
+                        <label>🏠 Select Property</label>
+                        <select id="tenantPropertySelect" onchange="loadOwnerDetails()">
+                            <option value="">-- Select Property --</option>
+                        </select>
+                    </div>
+                    <div class="info-note"><strong>👑 Owner Details (Auto-filled)</strong></div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Name</label><input type="text" id="ownerName" readonly disabled></div>
+                        <div class="form-group"><label>📞 Owner Phone</label><div class="phone-wrapper"><span class="phone-prefix">+91</span><input type="tel" id="ownerPhone" class="phone-input" readonly disabled></div></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Email</label><input type="text" id="ownerEmail" readonly disabled></div>
+                        <div class="form-group"><label>🪪 Owner Aadhar</label><input type="text" id="ownerAadhar" readonly disabled></div>
+                    </div>
+                    <hr>
+                    <div class="info-note"><strong>👤 Tenant Details (Fill Manually)</strong></div>
+                    <div class="form-group"><label>Tenant Full Name</label><input type="text" id="tenantName" placeholder="Enter tenant's full name"></div>
+                    <div class="row">
+                        <div class="form-group"><label>📞 Tenant Phone</label><div class="phone-wrapper"><span class="phone-prefix">+91</span><input type="tel" id="tenantPhone" class="phone-input" placeholder="1234567890" maxlength="10" oninput="validatePhone(this)"></div></div>
+                        <div class="form-group"><label>✉️ Tenant Email</label><input type="email" id="tenantEmail" placeholder="Email address"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>🪪 Tenant Aadhar</label><input type="text" id="tenantAadhar" placeholder="1234-5678-9012" maxlength="14" oninput="formatAadhar(this)"></div>
+                        <div class="form-group"><label>Tenant Address</label><input type="text" id="tenantAddress" placeholder="Current address"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>💰 Monthly Rent (₹)</label><input type="number" id="rentAmount" placeholder="e.g., 15000"></div>
+                        <div class="form-group"><label>🏦 Security Deposit (₹)</label><input type="number" id="deposit" placeholder="e.g., 30000"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>📅 Start Date</label><input type="date" id="startDate"></div>
+                        <div class="form-group"><label>📅 End Date</label><input type="date" id="endDate"></div>
+                    </div>
+                    <div class="form-group"><label>📝 Special Terms</label><textarea id="specialTerms" rows="3" placeholder="Any special conditions..."></textarea></div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateTenantPreview()">🔄 Update Preview</button>
+                        <button class="btn btn-success" onclick="saveAgreement()">💾 Save Agreement</button>
+                        <button class="btn btn-secondary" onclick="downloadTenantPDF()">📄 Download PDF</button>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h2>👁️ Preview</h2>
+                    <div id="tenantPreview" class="agreement-preview"><h1>TENANT AGREEMENT</h1><p>Select a property to generate agreement...</p></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Owner Agreement Tab -->
+        <div id="ownerTab" class="tab-content">
+            <div class="agreement-wrapper">
+                <div class="form-section">
+                    <h2>📝 Owner Agreement</h2>
+                    <div class="form-group"><label>🏠 Property Address</label><input type="text" id="ownerPropertyAddress" placeholder="Full property address"></div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Name</label><input type="text" id="ownerAgreementName" placeholder="Owner's full name"></div>
+                        <div class="form-group"><label>📞 Owner Phone</label><div class="phone-wrapper"><span class="phone-prefix">+91</span><input type="tel" id="ownerAgreementPhone" class="phone-input" placeholder="1234567890" maxlength="10" oninput="validatePhone(this)"></div></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Email</label><input type="email" id="ownerAgreementEmail" placeholder="Email address"></div>
+                        <div class="form-group"><label>🪪 Owner Aadhar</label><input type="text" id="ownerAgreementAadhar" placeholder="1234-5678-9012" maxlength="14" oninput="formatAadhar(this)"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>💰 Expected Rent (₹)</label><input type="number" id="expectedRent" placeholder="e.g., 15000"></div>
+                        <div class="form-group"><label>📅 Agreement Date</label><input type="date" id="agreementDate"></div>
+                    </div>
+                    <div class="form-group"><label>📝 Special Terms</label><textarea id="ownerSpecialTerms" rows="3" placeholder="Any special terms..."></textarea></div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateOwnerPreview()">🔄 Update Preview</button>
+                        <button class="btn btn-success" onclick="saveOwnerAgreement()">💾 Save Agreement</button>
+                        <button class="btn btn-secondary" onclick="downloadOwnerPDF()">📄 Download PDF</button>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h2>👁️ Preview</h2>
+                    <div id="ownerPreview" class="agreement-preview"><h1>OWNER AGREEMENT</h1><p>Fill the form to generate agreement...</p></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rent Receipt Tab -->
+        <div id="receiptTab" class="tab-content">
+            <div class="agreement-wrapper">
+                <div class="form-section">
+                    <h2>🧾 Rent Receipt Generator</h2>
+                    <div class="form-group"><label>🏠 Select Property</label><select id="receiptPropertySelect" onchange="loadReceiptDetails()"><option value="">-- Select Property --</option></select></div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Name</label><input type="text" id="receiptOwnerName" readonly disabled></div>
+                        <div class="form-group"><label>Tenant Name</label><input type="text" id="receiptTenantName" placeholder="Tenant full name"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>📅 Receipt Month</label><input type="month" id="receiptMonth"></div>
+                        <div class="form-group"><label>💰 Rent Amount (₹)</label><input type="number" id="receiptAmount" placeholder="Rent amount"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>📅 Payment Date</label><input type="date" id="paymentDate"></div>
+                        <div class="form-group"><label>💳 Payment Mode</label><select id="paymentMode"><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Cheque</option></select></div>
+                    </div>
+                    <div class="form-group"><label>📝 Transaction ID</label><input type="text" id="receiptTransactionId" placeholder="Transaction ID"></div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateReceiptPreview()">🔄 Update Preview</button>
+                        <button class="btn btn-success" onclick="saveReceipt()">💾 Save Receipt</button>
+                        <button class="btn btn-secondary" onclick="downloadReceiptPDF()">📄 Download PDF</button>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h2>👁️ Preview</h2>
+                    <div id="receiptPreview" class="receipt-preview"><h1>RENT RECEIPT</h1><p>Fill the form to generate receipt...</p></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Tab -->
+        <div id="paymentTab" class="tab-content">
+            <div class="agreement-wrapper">
+                <div class="form-section">
+                    <h2>💰 Pay Rent Online</h2>
+                    <div class="form-group"><label>🏠 Select Property</label><select id="paymentPropertySelect" onchange="loadPaymentDetails()"><option value="">-- Select Property --</option></select></div>
+                    
+                    <div class="info-note"><strong>📋 Rent Details</strong></div>
+                    <div class="row">
+                        <div class="form-group"><label>Owner Name</label><input type="text" id="paymentOwnerName" readonly disabled></div>
+                        <div class="form-group"><label>📞 Owner UPI ID</label><input type="text" id="ownerUpiId" placeholder="owner@okhdfcbank" value="apnaghar@okhdfcbank"></div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group"><label>Monthly Rent (₹)</label><input type="number" id="paymentRentAmount" readonly disabled></div>
+                        <div class="form-group"><label>📅 Payment Month</label><input type="month" id="paymentMonth"></div>
+                    </div>
+                    <div class="form-group"><label>🏦 Late Fee (₹)</label><input type="number" id="lateFee" placeholder="0" value="0" oninput="calculateTotal()"></div>
+                    <div class="form-group"><label>💰 Total Amount (₹)</label><input type="number" id="totalAmount" readonly style="background:#f0f0f0;font-weight:bold;"></div>
+                    
+                    <hr>
+                    <div class="info-note"><strong>📱 Scan & Pay via UPI</strong></div>
+                    <div style="text-align:center; margin:20px 0;">
+                        <div id="qrCodeContainer" class="qr-container"><p>Select property to generate QR</p></div>
+                        <div id="upiLink" style="margin-top:15px;"></div>
+                    </div>
+                    
+                    <hr>
+                    <div class="info-note"><strong>📸 Payment Confirmation</strong></div>
+                    <div class="form-group"><label>Transaction ID / UTR Number</label><input type="text" id="paymentTransactionId" placeholder="e.g., HDFC123456789"></div>
+                    <div class="form-group"><label>Upload Screenshot</label><input type="file" id="paymentScreenshot" accept="image/*"><div id="screenshotPreview" class="screenshot-preview"></div></div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="generateUPI()">🔄 Generate QR</button>
+                        <button class="btn btn-success" onclick="submitPayment()">📤 Submit Payment</button>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h2>📜 Payment History</h2>
+                    <div id="paymentHistory" style="max-height:500px; overflow-y:auto;"><p style="text-align:center;">Select property to view history</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background:#2c3e50; color:white; text-align:center; padding:20px; margin-top:40px;">
+        © 2025 Apna Ghar. All rights reserved.
+    </footer>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+            authDomain: "apnaghar-3.firebaseapp.com",
+            projectId: "apnaghar-3",
+            storageBucket: "apnaghar-3.firebasestorage.app",
+            messagingSenderId: "612810268433",
+            appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        let allProperties = [];
+        let ownersData = {};
+        let selectedPaymentProperty = null;
+        
+        // ========== THEME ==========
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                themeBtn.onclick = () => {
+                    const curr = document.documentElement.getAttribute('data-theme');
+                    const newTheme = curr === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+        
+        // ========== VALIDATIONS ==========
+        function validatePhone(input) {
+            let val = input.value.replace(/\D/g, '');
+            if(val.length > 10) val = val.slice(0,10);
+            input.value = val;
+            if(val.length === 10) input.classList.add('valid');
+            else input.classList.remove('valid');
+        }
+        
+        function formatAadhar(input) {
+            let val = input.value.replace(/\D/g, '');
+            if(val.length > 12) val = val.slice(0,12);
+            let formatted = '';
+            for(let i=0; i<val.length; i++) {
+                if(i===4 || i===8) formatted += '-';
+                formatted += val[i];
+            }
+            input.value = formatted;
+        }
+        
+        // ========== FETCH PROPERTIES ==========
+        async function fetchProperties() {
+            try {
+                const snapshot = await db.collection("properties").get();
+                const selects = ['tenantPropertySelect', 'receiptPropertySelect', 'paymentPropertySelect'];
+                selects.forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerHTML = '<option value="">-- Select Property --</option>'; });
+                
+                for(const doc of snapshot.docs) {
+                    const prop = { id: doc.id, ...doc.data() };
+                    allProperties.push(prop);
+                    
+                    if(prop.ownerId && !ownersData[prop.ownerId]) {
+                        const ownerDoc = await db.collection("users").where("uid", "==", prop.ownerId).get();
+                        ownerDoc.forEach(o => { ownersData[prop.ownerId] = o.data(); });
+                    }
+                    
+                    selects.forEach(id => {
+                        const select = document.getElementById(id);
+                        if(select) {
+                            const opt = document.createElement('option');
+                            opt.value = prop.id;
+                            opt.textContent = `${prop.title} - ${prop.city} (₹${prop.price}/month)`;
+                            select.appendChild(opt);
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        // ========== LOAD OWNER DETAILS ==========
+        window.loadOwnerDetails = function() {
+            const propId = document.getElementById('tenantPropertySelect').value;
+            const prop = allProperties.find(p => p.id === propId);
+            if(prop && ownersData[prop.ownerId]) {
+                const o = ownersData[prop.ownerId];
+                document.getElementById('ownerName').value = o.name || '';
+                document.getElementById('ownerPhone').value = o.phone || '';
+                document.getElementById('ownerEmail').value = o.email || '';
+                document.getElementById('ownerAadhar').value = o.aadhar || '';
+                document.getElementById('rentAmount').value = prop.price || '';
+                const today = new Date();
+                const end = new Date(); end.setMonth(today.getMonth()+11);
+                document.getElementById('startDate').value = today.toISOString().split('T')[0];
+                document.getElementById('endDate').value = end.toISOString().split('T')[0];
+                updateTenantPreview();
+            }
+        };
+        
+        window.loadReceiptDetails = function() {
+            const propId = document.getElementById('receiptPropertySelect').value;
+            const prop = allProperties.find(p => p.id === propId);
+            if(prop && ownersData[prop.ownerId]) {
+                document.getElementById('receiptOwnerName').value = ownersData[prop.ownerId]?.name || '';
+                document.getElementById('receiptAmount').value = prop.price || '';
+                updateReceiptPreview();
+            }
+        };
+        
+        window.loadPaymentDetails = function() {
+            const propId = document.getElementById('paymentPropertySelect').value;
+            selectedPaymentProperty = allProperties.find(p => p.id === propId);
+            if(selectedPaymentProperty && ownersData[selectedPaymentProperty.ownerId]) {
+                document.getElementById('paymentOwnerName').value = ownersData[selectedPaymentProperty.ownerId]?.name || '';
+                document.getElementById('paymentRentAmount').value = selectedPaymentProperty.price || '';
+                calculateTotal();
+                loadPaymentHistory(propId);
+            }
+        };
+        
+        function calculateTotal() {
+            const rent = parseFloat(document.getElementById('paymentRentAmount').value) || 0;
+            const late = parseFloat(document.getElementById('lateFee').value) || 0;
+            document.getElementById('totalAmount').value = rent + late;
+        }
+        
+        // ========== UPI QR GENERATE ==========
+        window.generateUPI = function() {
+            const upi = document.getElementById('ownerUpiId').value;
+            const amt = document.getElementById('totalAmount').value;
+            const month = document.getElementById('paymentMonth').value;
+            if(!upi) { alert('❌ Enter owner UPI ID'); return; }
+            if(!amt || amt<=0) { alert('❌ Invalid amount'); return; }
+            
+            const upiUrl = `upi://pay?pa=${upi}&pn=Apna Ghar Rent&am=${amt}&tn=Rent for ${month}&cu=INR`;
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = '';
+            new QRCode(container, { text: upiUrl, width: 200, height: 200 });
+            document.getElementById('upiLink').innerHTML = `<a href="${upiUrl}" style="display:inline-block;padding:12px 24px;background:#ff9800;color:white;text-decoration:none;border-radius:8px;">📱 Click to Pay</a>`;
+        };
+        
+        // ========== SUBMIT PAYMENT ==========
+        window.submitPayment = async function() {
+            if(!selectedPaymentProperty) { alert('❌ Select property'); return; }
+            const txId = document.getElementById('paymentTransactionId').value;
+            if(!txId) { alert('❌ Enter Transaction ID'); return; }
+            
+            const user = auth.currentUser;
+            if(!user) { alert('Please login'); window.location='log.html'; return; }
+            
+            const userDoc = await db.collection("users").where("uid","==",user.uid).get();
+            let userName = user.email;
+            userDoc.forEach(d => { userName = d.data().name; });
+            
+            await db.collection("payments").add({
+                propertyId: selectedPaymentProperty.id,
+                propertyTitle: selectedPaymentProperty.title,
+                ownerId: selectedPaymentProperty.ownerId,
+                ownerName: document.getElementById('paymentOwnerName').value,
+                tenantId: user.uid,
+                tenantName: userName,
+                amount: parseFloat(document.getElementById('totalAmount').value),
+                month: document.getElementById('paymentMonth').value,
+                transactionId: txId,
+                status: 'pending',
+                paymentDate: new Date().toISOString()
+            });
+            
+            alert('✅ Payment submitted! Owner will verify.');
+            document.getElementById('paymentTransactionId').value = '';
+            document.getElementById('paymentScreenshot').value = '';
+            document.getElementById('screenshotPreview').innerHTML = '';
+            loadPaymentHistory(selectedPaymentProperty.id);
+        };
+        
+        // ========== LOAD PAYMENT HISTORY ==========
+        async function loadPaymentHistory(propId) {
+            const user = auth.currentUser;
+            if(!user) { document.getElementById('paymentHistory').innerHTML = '<p>Login to view history</p>'; return; }
+            
+            const snapshot = await db.collection("payments").where("propertyId","==",propId).where("tenantId","==",user.uid).orderBy("paymentDate","desc").get();
+            if(snapshot.empty) { document.getElementById('paymentHistory').innerHTML = '<p>No payment history</p>'; return; }
+            
+            let html = '';
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                const statusClass = p.status === 'approved' ? 'status-approved' : (p.status === 'rejected' ? 'status-rejected' : 'status-pending');
+                const statusText = p.status === 'approved' ? '✅ Approved' : (p.status === 'rejected' ? '❌ Rejected' : '⏳ Pending');
+                html += `<div class="payment-history-item" style="border-left-color: ${p.status === 'approved' ? '#27ae60' : (p.status === 'rejected' ? '#e74c3c' : '#ff9800')}; margin-bottom:10px; padding:15px; background:var(--card-light); border-radius:10px;">
+                            <div><strong>${p.month}</strong> - ₹${p.amount}</div>
+                            <div style="font-size:12px;">TXID: ${p.transactionId}</div>
+                            <div><span class="status-badge ${statusClass}">${statusText}</span></div>
+                            <div style="font-size:10px;">${new Date(p.paymentDate).toLocaleDateString()}</div>
+                        </div>`;
+            });
+            document.getElementById('paymentHistory').innerHTML = html;
+        }
+        
+        // ========== PREVIEW FUNCTIONS ==========
+        function getTenantHTML() {
+            const owner = document.getElementById('ownerName').value || '__________';
+            const ownerPhone = document.getElementById('ownerPhone').value || '__________';
+            const tenant = document.getElementById('tenantName').value || '__________';
+            const tenantPhone = document.getElementById('tenantPhone').value || '__________';
+            const rent = document.getElementById('rentAmount').value || '______';
+            const start = document.getElementById('startDate').value || '__________';
+            const end = document.getElementById('endDate').value || '__________';
+            const propId = document.getElementById('tenantPropertySelect').value;
+            const prop = allProperties.find(p => p.id === propId);
+            const addr = prop ? `${prop.address}, ${prop.city}` : '__________';
+            return `<h1>RENT AGREEMENT</h1><h3>Parties</h3><p><strong>Owner:</strong> ${owner}<br>📞 +91${ownerPhone}</p><p><strong>Tenant:</strong> ${tenant}<br>📞 +91${tenantPhone}</p><h3>Property</h3><p>${addr}</p><h3>Terms</h3><p>Rent: ₹${rent}/month<br>Tenure: ${start} to ${end}</p><div class="signature-area"><div>_________________<br>Owner</div><div>_________________<br>Tenant</div></div>`;
+        }
+        
+        window.updateTenantPreview = function() { document.getElementById('tenantPreview').innerHTML = getTenantHTML(); };
+        window.updateOwnerPreview = function() {
+            const name = document.getElementById('ownerAgreementName').value || '__________';
+            const rent = document.getElementById('expectedRent').value || '______';
+            const addr = document.getElementById('ownerPropertyAddress').value || '__________';
+            document.getElementById('ownerPreview').innerHTML = `<h1>OWNER AGREEMENT</h1><p><strong>Owner:</strong> ${name}</p><p><strong>Property:</strong> ${addr}</p><p><strong>Expected Rent:</strong> ₹${rent}/month</p><div class="signature-area"><div>_________________<br>Owner</div><div>_________________<br>Apna Ghar</div></div>`;
+        };
+        
+        window.updateReceiptPreview = function() {
+            const owner = document.getElementById('receiptOwnerName').value || '__________';
+            const tenant = document.getElementById('receiptTenantName').value || '__________';
+            const month = document.getElementById('receiptMonth').value || '__________';
+            const amt = document.getElementById('receiptAmount').value || '______';
+            const mode = document.getElementById('paymentMode').value;
+            document.getElementById('receiptPreview').innerHTML = `<h1>RENT RECEIPT</h1><p><strong>Received from:</strong> ${tenant}</p><p><strong>Owner:</strong> ${owner}</p><p><strong>Month:</strong> ${month}</p><p><strong>Amount:</strong> ₹${amt}</p><p><strong>Mode:</strong> ${mode}</p><div class="signature-area"><div>_________________<br>Owner</div></div>`;
+        };
+        
+        // ========== SAVE FUNCTIONS ==========
+        window.saveAgreement = async function() {
+            await db.collection("agreements").add({ type:'tenant', data: getTenantHTML(), createdAt: new Date().toISOString() });
+            alert('✅ Agreement saved!');
+        };
+        window.saveOwnerAgreement = async function() {
+            await db.collection("agreements").add({ type:'owner', ownerName: document.getElementById('ownerAgreementName').value, createdAt: new Date().toISOString() });
+            alert('✅ Owner agreement saved!');
+        };
+        window.saveReceipt = async function() {
+            await db.collection("receipts").add({ month: document.getElementById('receiptMonth').value, amount: document.getElementById('receiptAmount').value, createdAt: new Date().toISOString() });
+            alert('✅ Receipt saved!');
+        };
+        
+        // ========== PDF DOWNLOADS ==========
+        window.downloadTenantPDF = function() { html2pdf().from(document.getElementById('tenantPreview')).set({filename:'Tenant_Agreement.pdf'}).save(); alert('✅ PDF downloaded!'); };
+        window.downloadOwnerPDF = function() { html2pdf().from(document.getElementById('ownerPreview')).set({filename:'Owner_Agreement.pdf'}).save(); alert('✅ PDF downloaded!'); };
+        window.downloadReceiptPDF = function() { html2pdf().from(document.getElementById('receiptPreview')).set({filename:'Rent_Receipt.pdf'}).save(); alert('✅ PDF downloaded!'); };
+        
+        // ========== SWITCH TAB ==========
+        window.switchTab = function(tab) {
+            // Hide all tabs
+            const tabs = ['tenantTab', 'ownerTab', 'receiptTab', 'paymentTab'];
+            tabs.forEach(t => {
+                const el = document.getElementById(t);
+                if(el) el.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            if(tab === 'tenant') {
+                const tenantTab = document.getElementById('tenantTab');
+                if(tenantTab) tenantTab.classList.add('active');
+                if(btns[0]) btns[0].classList.add('active');
+            }
+            else if(tab === 'owner') {
+                const ownerTab = document.getElementById('ownerTab');
+                if(ownerTab) ownerTab.classList.add('active');
+                if(btns[1]) btns[1].classList.add('active');
+                if(!document.getElementById('agreementDate').value) {
+                    document.getElementById('agreementDate').value = new Date().toISOString().split('T')[0];
+                }
+            }
+            else if(tab === 'receipt') {
+                const receiptTab = document.getElementById('receiptTab');
+                if(receiptTab) receiptTab.classList.add('active');
+                if(btns[2]) btns[2].classList.add('active');
+                if(!document.getElementById('paymentDate').value) {
+                    document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+                }
+                if(!document.getElementById('receiptMonth').value) {
+                    const now = new Date();
+                    document.getElementById('receiptMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                }
+            }
+            else if(tab === 'payment') {
+                const paymentTab = document.getElementById('paymentTab');
+                if(paymentTab) paymentTab.classList.add('active');
+                if(btns[3]) btns[3].classList.add('active');
+                
+                // Set default payment month if empty
+                if(!document.getElementById('paymentMonth').value) {
+                    const now = new Date();
+                    document.getElementById('paymentMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                }
+                
+                // Load payment dropdown properties
+                if(allProperties.length > 0 && document.getElementById('paymentPropertySelect')) {
+                    const select = document.getElementById('paymentPropertySelect');
+                    if(select && select.options.length <= 1) {
+                        select.innerHTML = '<option value="">-- Select Property --</option>';
+                        allProperties.forEach(prop => {
+                            const option = document.createElement('option');
+                            option.value = prop.id;
+                            option.textContent = `${prop.title} - ${prop.city} (₹${prop.price}/month)`;
+                            select.appendChild(option);
+                        });
+                    }
+                }
+            }
+        };
+        
+        // ========== INIT ==========
+        document.getElementById('lateFee')?.addEventListener('input', calculateTotal);
+        document.getElementById('paymentScreenshot')?.addEventListener('change', function(e) {
+            const preview = document.getElementById('screenshotPreview');
+            preview.innerHTML = '';
+            if(this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => { const img = document.createElement('img'); img.src = e.target.result; preview.appendChild(img); };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+        
+        const today = new Date();
+        const end = new Date(); end.setMonth(today.getMonth()+11);
+        document.getElementById('startDate') && (document.getElementById('startDate').value = today.toISOString().split('T')[0]);
+        document.getElementById('endDate') && (document.getElementById('endDate').value = end.toISOString().split('T')[0]);
+        document.getElementById('agreementDate') && (document.getElementById('agreementDate').value = today.toISOString().split('T')[0]);
+        document.getElementById('paymentDate') && (document.getElementById('paymentDate').value = today.toISOString().split('T')[0]);
+        document.getElementById('paymentMonth') && (document.getElementById('paymentMonth').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`);
+        document.getElementById('receiptMonth') && (document.getElementById('receiptMonth').value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`);
+        
+        auth.onAuthStateChanged(async (user) => {
+            const login = document.getElementById('loginLink'), logout = document.getElementById('logoutLink');
+            if(user) {
+                if(login) login.style.display = 'none';
+                if(logout) { logout.style.display = 'inline-block'; logout.onclick = async () => { await auth.signOut(); window.location='home.html'; }; }
+                fetchProperties();
+                const userDoc = await db.collection("users").where("uid","==",user.uid).get();
+                userDoc.forEach(d => { const data = d.data(); if(data.role === 'owner') {
+                    document.getElementById('ownerAgreementName') && (document.getElementById('ownerAgreementName').value = data.name || '');
+                    document.getElementById('ownerAgreementPhone') && (document.getElementById('ownerAgreementPhone').value = data.phone || '');
+                    document.getElementById('ownerAgreementEmail') && (document.getElementById('ownerAgreementEmail').value = data.email || '');
+                    document.getElementById('ownerAgreementAadhar') && (document.getElementById('ownerAgreementAadhar').value = data.aadhar || '');
+                }});
+            } else {
+                if(login) login.style.display = 'inline-block';
+                if(logout) logout.style.display = 'none';
+                fetchProperties();
+            }
+        });
+        
+        // Auto update previews
+        document.querySelectorAll('#tenantTab input, #tenantTab select, #tenantTab textarea').forEach(el => el.addEventListener('input', updateTenantPreview));
+        document.querySelectorAll('#ownerTab input, #ownerTab textarea').forEach(el => el.addEventListener('input', updateOwnerPreview));
+        document.querySelectorAll('#receiptTab input, #receiptTab select').forEach(el => el.addEventListener('input', updateReceiptPreview));
+    </script>
+</body>
+</html>

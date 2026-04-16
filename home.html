@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<title>Apna Ghar - Home</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;}
+
+:root {
+    --primary: #ff9800;
+    --primary-dark: #f57c00;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --bg-light: #f5f5f5;
+    --bg-dark: #1a1a1a;
+    --card-light: #ffffff;
+    --card-dark: #2d2d2d;
+    --text-dark: #333;
+    --text-light: #666;
+    --header-bg: #2c3e50;
+}
+
+[data-theme="dark"] {
+    --bg-light: #1a1a1a;
+    --card-light: #2d2d2d;
+    --text-dark: #fff;
+    --text-light: #ccc;
+    --header-bg: #1e1e1e;
+}
+
+body{
+margin:0;
+font-family:Arial;
+background:var(--bg-light);
+color:var(--text-dark);
+margin-top:70px;
+transition:0.3s;
+}
+
+header{
+background:var(--header-bg);
+color:white;
+padding:10px 0;
+position:fixed;
+top:0;
+width:100%;
+z-index:1000;
+}
+
+.nav-container{
+width:90%;
+max-width:1100px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{
+display:flex;
+align-items:center;
+font-size:1.4rem;
+font-weight:bold;
+color:white;
+}
+
+.logo img{
+height:40px;
+margin-right:8px;
+border-radius:100px;
+}
+
+nav a{
+color:white;
+margin-left:20px;
+text-decoration:none;
+font-weight:bold;
+display:inline-block;
+}
+
+nav a:hover{
+text-decoration:underline;
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 80px 20px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.hero-search {
+    max-width: 600px;
+    margin: 40px auto;
+}
+
+.search-wrapper {
+    display: flex;
+    background: white;
+    border-radius: 50px;
+    padding: 5px;
+}
+
+.search-icon {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    color: #666;
+}
+
+.search-wrapper input {
+    flex: 1;
+    padding: 15px 0;
+    border: none;
+    outline: none;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.search-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.search-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.quick-filters {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.filter-chip {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.filter-chip:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+}
+
+.slider{
+max-width:1100px;
+margin:auto;
+overflow:hidden;
+border-radius:10px;
+position:relative;
+margin-top: 30px;
+}
+
+.slide{
+display:none;
+}
+
+.slide img{
+width:100%;
+height:400px;
+object-fit:cover;
+}
+
+.active{display:block;}
+
+.featured{
+padding:60px 20px;
+text-align:center;
+}
+
+.featured h2 {
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    color: var(--primary);
+}
+
+.property-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+gap:30px;
+max-width:1100px;
+margin:auto;
+}
+
+.card{
+background:var(--card-light);
+color:var(--text-dark);
+border-radius:15px;
+overflow:hidden;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+transition:0.3s;
+position:relative;
+}
+
+.card:hover{
+transform:translateY(-10px);
+}
+
+.card-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.card-image img{
+width:100%;
+height:100%;
+object-fit:cover;
+transition:0.5s;
+}
+
+.card:hover .card-image img{
+transform:scale(1.1);
+}
+
+.badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: var(--danger);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.card h3 {
+    margin: 0 0 5px;
+    font-size: 1.3rem;
+}
+
+.location {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin: 5px 0;
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--success);
+    margin: 10px 0;
+}
+
+.price span {
+    font-size: 0.9rem;
+    font-weight: normal;
+    color: var(--text-light);
+}
+
+.features {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.view-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.view-btn:hover {
+    background: var(--primary-dark);
+}
+
+.stats {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    text-align: center;
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .stats {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+}
+
+.stats div {
+    background: rgba(255,255,255,0.95);
+    padding: 30px 40px;
+    border-radius: 15px;
+    min-width: 200px;
+}
+
+[data-theme="dark"] .stats div {
+    background: rgba(45,45,45,0.95);
+}
+
+.stats h2 {
+    font-size: 3rem !important;
+    color: var(--primary);
+    margin: 0;
+}
+
+.stats p {
+    font-size: 1.1rem;
+    color: var(--text-light);
+    margin: 10px 0 0;
+}
+
+footer{
+background:var(--header-bg);
+color:white;
+text-align:center;
+padding:20px;
+margin-top:40px;
+}
+
+.whatsapp{
+position:fixed;
+bottom:20px;
+left:20px;
+background:#25D366;
+color:white;
+padding:15px;
+border-radius:50%;
+font-size:20px;
+text-decoration:none;
+z-index:100;
+transition:0.3s;
+}
+
+.whatsapp:hover {
+    transform: scale(1.1);
+}
+
+#topBtn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:var(--primary);
+color:white;
+border:none;
+padding:10px 15px;
+border-radius:5px;
+cursor:pointer;
+display:none;
+z-index:100;
+transition:0.3s;
+}
+
+#topBtn:hover {
+    background: var(--primary-dark);
+}
+
+@media(max-width:768px){
+    .nav-container{
+        flex-direction:column;
+    }
+    nav{
+        margin-top:10px;
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+    nav a{
+        margin:5px;
+    }
+    .hero h1{
+        font-size:32px;
+    }
+    .search-wrapper {
+        flex-direction: column;
+        border-radius: 15px;
+    }
+    .search-wrapper input {
+        width: 100%;
+        padding: 15px;
+    }
+    .search-btn {
+        margin: 5px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="nav-container">
+<div class="logo">
+<img src="/image/logo.jpg" alt="Logo">Apna Ghar
+</div>
+<nav>
+<a href="home.html">Home</a>
+<a href="services.html">Services</a>
+<a href="aboutus.html">About</a>
+<a href="contact.html">Contact</a>
+<a href="owner-dashboard.html" id="ownerDashboardLink" style="display:none;">Dashboard</a>
+<a href="customer-dashboard.html">My Dashboard</a>
+<a href="login.html" id="loginLink">Login</a>
+<a href="signup.html" id="signupLink">Sign Up</a>
+<span id="logoutLink" style="display:none;"></span>
+</nav>
+<button id="theme-toggle">🌙</button>
+</div>
+</header>
+
+<section class="hero">
+    <h1 id="typing"></h1>
+    <p>Rooms • Flats • Houses • PG • Villas</p>
+    
+    <div class="hero-search">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="heroSearch" placeholder="Search by city...">
+            <button onclick="searchProperty()" class="search-btn">Search</button>
+        </div>
+    </div>
+    
+    <div class="quick-filters">
+        <button class="filter-chip" onclick="filterByType('house')">🏠 House</button>
+        <button class="filter-chip" onclick="filterByType('apartment')">🏢 Apartment</button>
+        <button class="filter-chip" onclick="filterByType('1bhk')">🛏️ 1 BHK</button>
+        <button class="filter-chip" onclick="filterByType('2bhk')">🛏️ 2 BHK</button>
+        <button class="filter-chip" onclick="filterByType('3bhk')">🛏️ 3 BHK</button>
+    </div>
+</section>
+
+<div class="slider">
+<div class="slide active">
+<img src="/image/s3.jpeg" alt="Slide 1">
+</div>
+<div class="slide">
+<img src="/image/s2.jpeg" alt="Slide 2">
+</div>
+<div class="slide">
+<img src="/image/s1.jpeg" alt="Slide 3">
+</div>
+</div>
+
+<section class="featured">
+<h2>🔥 Featured Properties</h2>
+<div class="property-grid" id="propertyList">
+    <div class="empty-state">Loading properties...</div>
+</div>
+</section>
+
+<section class="stats">
+<div>
+<h2 id="count1">0</h2>
+<p>Properties Listed</p>
+</div>
+<div>
+<h2 id="count2">0</h2>
+<p>Happy Users</p>
+</div>
+<div>
+<h2 id="count3">0</h2>
+<p>Cities Covered</p>
+</div>
+</section>
+
+<footer>
+© 2025 Apna Ghar. All rights reserved.
+</footer>
+
+<a href="https://wa.me/911234567890" class="whatsapp" target="_blank">💬</a>
+<button id="topBtn" onclick="topFunction()">⬆</button>
+
+<script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+        authDomain: "apnaghar-3.firebaseapp.com",
+        projectId: "apnaghar-3",
+        storageBucket: "apnaghar-3.firebasestorage.app",
+        messagingSenderId: "612810268433",
+        appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    
+    let allProperties = [];
+    
+    // ========== THEME ==========
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeBtn = document.getElementById('theme-toggle');
+        if(themeBtn) {
+            themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            themeBtn.onclick = () => {
+                const curr = document.documentElement.getAttribute('data-theme');
+                const newTheme = curr === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            };
+        }
+    })();
+    
+    // ========== LOGIN STATE ==========
+    auth.onAuthStateChanged(async (user) => {
+        const loginLink = document.getElementById('loginLink');
+        const signupLink = document.getElementById('signupLink');
+        const logoutSpan = document.getElementById('logoutLink');
+        const dashboardLink = document.getElementById('ownerDashboardLink');
+        
+        if (user) {
+            if (loginLink) loginLink.style.display = 'none';
+            if (signupLink) signupLink.style.display = 'none';
+            if (logoutSpan) {
+                logoutSpan.style.display = 'inline-block';
+                logoutSpan.innerHTML = `<a href="#" onclick="logout()" style="color:#ff9800;">Logout</a>`;
+            }
+            
+            // Check if owner
+            const userDoc = await db.collection("users").where("uid", "==", user.uid).get();
+            userDoc.forEach(doc => {
+                if (doc.data().role === 'owner' && dashboardLink) {
+                    dashboardLink.style.display = 'inline-block';
+                }
+            });
+        } else {
+            if (loginLink) loginLink.style.display = 'inline-block';
+            if (signupLink) signupLink.style.display = 'inline-block';
+            if (logoutSpan) logoutSpan.style.display = 'none';
+            if (dashboardLink) dashboardLink.style.display = 'none';
+        }
+    });
+    
+    window.logout = async function() {
+        await auth.signOut();
+        localStorage.removeItem('currentUser');
+        window.location.href = 'home.html';
+    };
+    
+    // ========== FETCH PROPERTIES ==========
+    async function fetchProperties() {
+        try {
+            const snapshot = await db.collection("properties").where("status", "==", "active").get();
+            allProperties = [];
+            snapshot.forEach(doc => {
+                allProperties.push({ id: doc.id, ...doc.data() });
+            });
+            
+            document.getElementById('count1').innerHTML = allProperties.length + "+";
+            document.getElementById('count2').innerHTML = Math.floor(allProperties.length * 1.5) + "+";
+            document.getElementById('count3').innerHTML = "25+";
+            
+            displayProperties(allProperties);
+        } catch(e) {
+            console.error("Error:", e);
+            document.getElementById('propertyList').innerHTML = '<div class="empty-state">Error loading properties</div>';
+        }
+    }
+    
+    function displayProperties(properties) {
+        const container = document.getElementById('propertyList');
+        if (properties.length === 0) {
+            container.innerHTML = '<div class="empty-state">No properties found</div>';
+            return;
+        }
+        
+        let html = '';
+        properties.forEach(prop => {
+            const imgUrl = prop.images && prop.images[0] ? prop.images[0] : '/image/placeholder.jpg';
+            html += `
+                <div class="card" onclick="window.location.href='services.html'">
+                    <div class="card-image">
+                        <span class="badge">${prop.status === 'active' ? 'Available' : 'Inactive'}</span>
+                        <img src="${imgUrl}" alt="${prop.title}" onerror="this.src='/image/placeholder.jpg'">
+                    </div>
+                    <div class="card-content">
+                        <h3>${prop.title}</h3>
+                        <div class="location">📍 ${prop.city}</div>
+                        <div class="price">₹${prop.price?.toLocaleString()} <span>/month</span></div>
+                        <div class="features">
+                            <span>🛏️ ${prop.bedrooms} BHK</span>
+                            <span>🚽 ${prop.bathrooms} Bath</span>
+                            <span>📏 ${prop.area} sqft</span>
+                        </div>
+                        <button class="view-btn" onclick="event.stopPropagation();window.location.href='services.html'">View Details →</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    window.searchProperty = function() {
+        let input = document.getElementById("heroSearch").value.toLowerCase();
+        let filtered = allProperties.filter(p => p.city?.toLowerCase().includes(input));
+        displayProperties(filtered);
+    };
+    
+    window.filterByType = function(type) {
+        let filtered = allProperties.filter(p => {
+            if (type === 'house') return p.type === 'house';
+            if (type === 'apartment') return p.type === 'apartment';
+            if (type === '1bhk') return p.bedrooms === 1;
+            if (type === '2bhk') return p.bedrooms === 2;
+            if (type === '3bhk') return p.bedrooms === 3;
+            return false;
+        });
+        displayProperties(filtered);
+        if (filtered.length === 0) alert(`No ${type} properties found`);
+    };
+    
+    // Typing effect
+    const text = "Find Your Dream Home Easily With Apna Ghar";
+    let i = 0;
+    function type() {
+        const el = document.getElementById("typing");
+        if (el && i < text.length) {
+            el.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, 80);
+        }
+    }
+    type();
+    
+    // Slider
+    let slides = document.querySelectorAll(".slide");
+    let idx = 0;
+    if (slides.length) {
+        setInterval(() => {
+            slides[idx].classList.remove("active");
+            idx = (idx + 1) % slides.length;
+            slides[idx].classList.add("active");
+        }, 4000);
+    }
+    
+    // Top button
+    const topBtn = document.getElementById("topBtn");
+    window.onscroll = () => {
+        topBtn.style.display = document.documentElement.scrollTop > 200 ? 'block' : 'none';
+    };n
+    window.topFunction = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    fetchProperties();
+</script>
+</body>
+</html>

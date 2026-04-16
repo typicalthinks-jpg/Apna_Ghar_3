@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<title>Contact Us - Apna Ghar</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+    --bg-primary: #f5f5f5;
+    --text-primary: #333333;
+    --card-bg: #ffffff;
+    --header-bg: #2c3e50;
+    --border-color: #ccc;
+    --shadow: 0 0 10px rgba(0,0,0,0.1);
+    --success: #27ae60;
+    --primary: #ff9800;
+    --secondary: #3498db;
+}
+
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --text-primary: #ffffff;
+    --card-bg: #2d2d2d;
+    --header-bg: #1e1e1e;
+    --border-color: #444;
+}
+
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:var(--bg-primary);
+color:var(--text-primary);
+margin-top:80px;
+transition:0.3s;
+}
+
+header{
+background:var(--header-bg);
+color:beige;
+padding:10px 0;
+position:fixed;
+top:0;
+width:100%;
+z-index:1000;
+}
+
+.nav-container{
+width:90%;
+max-width:1100px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{
+display:flex;
+align-items:center;
+font-size:1.4rem;
+font-weight:bold;
+color:white;
+}
+
+.logo img{
+height:40px;
+margin-right:8px;
+border-radius:100px;
+}
+
+nav a{
+color:white;
+margin-left:20px;
+text-decoration:none;
+font-weight:bold;
+}
+
+nav a:hover{
+text-decoration:underline;
+}
+
+nav a.active{
+background:#ff9800;
+border-radius:5px;
+padding:5px 10px;
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 15px;
+}
+
+.contact-section{
+display:flex;
+flex-wrap:wrap;
+padding:40px;
+background:var(--card-bg);
+margin:30px auto;
+max-width:1100px;
+border-radius:8px;
+box-shadow:var(--shadow);
+}
+
+.contact-form,.contact-info{
+flex:1;
+padding:20px;
+min-width:300px;
+}
+
+.contact-form h2,.contact-info h2{
+margin-bottom:20px;
+color:var(--primary);
+}
+
+label{
+font-weight:bold;
+display:block;
+margin-top:15px;
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:1px solid var(--border-color);
+border-radius:4px;
+font-size:1rem;
+background:var(--card-bg);
+color:var(--text-primary);
+}
+
+input:focus, textarea:focus{
+outline:2px solid var(--primary);
+border-color:transparent;
+}
+
+button{
+margin-top:20px;
+background:var(--success);
+color:white;
+padding:12px 20px;
+border:none;
+border-radius:5px;
+font-size:1rem;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+background:#219150;
+transform:translateY(-2px);
+}
+
+.counter{
+font-size:12px;
+color:#777;
+text-align:right;
+margin-top:5px;
+}
+
+.whatsapp-btn{
+display:inline-block;
+background:#25D366;
+color:white;
+padding:10px 20px;
+margin-top:15px;
+border-radius:5px;
+text-decoration:none;
+font-weight:bold;
+transition:0.3s;
+}
+
+.whatsapp-btn:hover{
+transform:scale(1.05);
+}
+
+.business-hours {
+    background: rgba(255,152,0,0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border-left: 4px solid var(--primary);
+}
+
+.response-guarantee {
+    text-align: center;
+    margin: 25px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    color: white;
+}
+
+.map iframe{
+width:100%;
+height:300px;
+border:0;
+border-radius:8px;
+}
+
+footer{
+background:var(--header-bg);
+color:white;
+text-align:center;
+padding:20px;
+margin-top:30px;
+}
+
+@media(max-width:768px){
+    .nav-container{
+        flex-direction:column;
+    }
+    nav{
+        margin:10px 0;
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+    nav a{
+        margin:5px;
+    }
+}
+</style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="contact.html" class="active">Contact</a>
+                <a href="owner-dashboard.html" id="ownerDashboardLink" style="display:none;">Dashboard</a>
+                <a href="customer-dashboard.html">My Dashboard</a>
+                <a href="login.html" id="loginLink">Login</a>
+                <a href="signup.html" id="signupLink">Sign Up</a>
+                <span id="logoutLink" style="display:none;"></span>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="contact-section">
+        <div class="contact-form">
+            <h2>📧 Send Us a Message</h2>
+            <form id="contactForm">
+                <label>Full Name</label>
+                <input type="text" id="name" placeholder="Your name" required>
+                <label>Email</label>
+                <input type="email" id="email" placeholder="Your email" required>
+                <label>Message</label>
+                <textarea id="message" rows="5" maxlength="200" placeholder="Write your message..." required></textarea>
+                <div class="counter"><span id="charCount">0</span>/200</div>
+                <button type="submit" id="sendBtn">Send Message</button>
+                <div id="successMsg" style="display:none; background:var(--success); color:white; padding:10px; margin-top:15px; border-radius:5px;">✅ Message sent successfully!</div>
+            </form>
+        </div>
+
+        <div class="contact-info">
+            <h2>📍 Contact Information</h2>
+            <p><strong>📞 Phone:</strong> <a href="tel:+911122334455">+91 11 2233 4455</a></p>
+            <p><strong>📧 Email:</strong> <span id="emailText">support@apnaghar.com</span> <button onclick="copyEmail()" style="margin:0; padding:5px 10px;">Copy</button></p>
+            <p><strong>🏠 Address:</strong> Chattrashal Churaha, Chhatarpur, MP - 471001</p>
+            <a class="whatsapp-btn" href="https://wa.me/911122334455" target="_blank">💬 Chat on WhatsApp</a>
+            
+            <div class="business-hours">
+                <h3>🕒 Business Hours</h3>
+                <p>📅 Monday - Friday: 9:00 AM - 8:00 PM</p>
+                <p>📅 Saturday: 10:00 AM - 6:00 PM</p>
+                <p>📅 Sunday: Closed (Emergency support 24/7)</p>
+            </div>
+            
+            <div class="response-guarantee">
+                <h3>⚡ Response Guarantee</h3>
+                <p>We reply within 15 minutes during business hours</p>
+            </div>
+            
+            <div class="map">
+                <iframe src="https://maps.google.com/maps?q=Chhatarpur%2C%20Madhya%20Pradesh&t=&z=13&ie=UTF8&iwloc=&output=embed" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>© 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+            authDomain: "apnaghar-3.firebaseapp.com",
+            projectId: "apnaghar-3",
+            storageBucket: "apnaghar-3.firebasestorage.app",
+            messagingSenderId: "612810268433",
+            appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        // Theme
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeBtn = document.getElementById('theme-toggle');
+            if(themeBtn) {
+                themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+                themeBtn.onclick = () => {
+                    const curr = document.documentElement.getAttribute('data-theme');
+                    const newTheme = curr === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+                };
+            }
+        })();
+        
+        // Auth state
+        auth.onAuthStateChanged(async (user) => {
+            const loginLink = document.getElementById('loginLink');
+            const signupLink = document.getElementById('signupLink');
+            const logoutSpan = document.getElementById('logoutLink');
+            const dashboardLink = document.getElementById('ownerDashboardLink');
+            
+            if (user) {
+                if (loginLink) loginLink.style.display = 'none';
+                if (signupLink) signupLink.style.display = 'none';
+                if (logoutSpan) {
+                    logoutSpan.style.display = 'inline-block';
+                    logoutSpan.innerHTML = `<a href="#" onclick="logout()" style="color:#ff9800;">Logout (${user.email})</a>`;
+                }
+                const db = firebase.firestore();
+                const userDoc = await db.collection("users").where("uid", "==", user.uid).get();
+                userDoc.forEach(doc => {
+                    if (doc.data().role === 'owner' && dashboardLink) {
+                        dashboardLink.style.display = 'inline-block';
+                    }
+                });
+            } else {
+                if (loginLink) loginLink.style.display = 'inline-block';
+                if (signupLink) signupLink.style.display = 'inline-block';
+                if (logoutSpan) logoutSpan.style.display = 'none';
+                if (dashboardLink) dashboardLink.style.display = 'none';
+            }
+        });
+        
+        window.logout = async () => {
+            await auth.signOut();
+            localStorage.removeItem('currentUser');
+            window.location.href = 'home.html';
+        };
+        
+        // Character counter
+        const message = document.getElementById("message");
+        const charCount = document.getElementById("charCount");
+        if(message && charCount) {
+            message.addEventListener("input", () => { charCount.innerText = message.value.length; });
+        }
+        
+        // Form submit
+        document.getElementById("contactForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const msg = document.getElementById("message").value.trim();
+            
+            if(name.length < 3) { alert("❌ Name must be at least 3 characters"); return; }
+            if(!email.includes('@')) { alert("❌ Please enter a valid email"); return; }
+            if(msg.length < 5) { alert("❌ Message too short"); return; }
+            
+            const sendBtn = document.getElementById("sendBtn");
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.5';
+            document.getElementById("successMsg").style.display = "block";
+            
+            setTimeout(() => {
+                document.getElementById("contactForm").reset();
+                document.getElementById("charCount").innerText = "0";
+                document.getElementById("successMsg").style.display = "none";
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = '1';
+                alert('✅ Message sent! We\'ll reply soon.');
+            }, 2000);
+        });
+        
+        window.copyEmail = () => {
+            navigator.clipboard.writeText("support@apnaghar.com");
+            alert("📋 Email copied to clipboard!");
+        };
+    </script>
+</body>
+</html>

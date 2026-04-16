@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+
+    <title>Add Property - Apna Ghar</title>
+    <!-- Firebase SDK -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --bg-primary: #f8f8f8;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --header-bg: #2c3e50;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --header-bg: #1e1e1e;
+            --card-bg: #2d2d2d;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            margin-top: 60px;
+            transition: all 0.3s ease;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: beige;
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 8px;
+            border-radius: 100px;
+        }
+
+        nav a {
+            color: white;
+            margin-left: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-left: 15px;
+            color: white;
+        }
+
+        #logoutLink {
+            cursor: pointer;
+            color: #ff9800;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: 2px solid #ff9800;
+            border-color: transparent;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preview-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 2px solid #ff9800;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #4dabf7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn-success { background-color: #40c057; }
+        .btn-secondary { background-color: #868e96; }
+
+        .required::after {
+            content: " *";
+            color: red;
+        }
+
+        footer {
+            background-color: var(--header-bg);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            nav {
+                margin: 10px 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            nav a {
+                margin: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/image/logo.jpg" alt="Logo">Apna Ghar
+            </div>
+            <nav>
+                <a href="home.html">Home</a>
+                <a href="services.html">Services</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="contact.html">Contact</a>
+                <a href="owner-dashboard.html">Dashboard</a>
+                <a href="#" id="logoutLink">Logout</a>
+            </nav>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <h2 id="formTitle">➕ Add New Property</h2>
+        
+        <form id="propertyForm">
+            <div class="form-group">
+                <label class="required">Property Title</label>
+                <input type="text" id="title" placeholder="e.g., 2BHK Family Apartment" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Property Type</label>
+                <select id="type" required>
+                    <option value="">Select Type</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="house">House</option>
+                    <option value="pg">PG/Hostel</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Purpose</label>
+                <select id="purpose" required>
+                    <option value="">Select Purpose</option>
+                    <option value="rent">For Rent</option>
+                    <option value="sale">For Sale</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Monthly Rent (₹)</label>
+                <input type="number" id="price" min="1000" placeholder="e.g., 15000" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Security Deposit (months)</label>
+                <input type="number" id="deposit" value="2" min="1" max="12">
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Bedrooms</label>
+                <input type="number" id="bedrooms" min="1" placeholder="e.g., 2" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Bathrooms</label>
+                <input type="number" id="bathrooms" min="1" placeholder="e.g., 2" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Area (sq ft)</label>
+                <input type="number" id="area" min="100" placeholder="e.g., 850" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Furnishing</label>
+                <select id="furnishing">
+                    <option value="full">Fully Furnished</option>
+                    <option value="semi">Semi-Furnished</option>
+                    <option value="unfurnished">Unfurnished</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Address</label>
+                <input type="text" id="address" placeholder="Full address with landmark" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">City</label>
+                <input type="text" id="city" placeholder="e.g., Mumbai" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="required">Description</label>
+                <textarea id="description" rows="4" placeholder="Describe your property in detail..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>Amenities (comma separated)</label>
+                <input type="text" id="amenities" placeholder="WiFi, Parking, AC, Security, etc.">
+            </div>
+            
+            <!-- Upload Photos -->
+             <!-- Image Upload Section -->
+<div class="form-group">
+    <label>🏠 Property Photos (Max 5)</label>
+    <input type="file" id="images" multiple accept="image/*" onchange="previewImages()">
+    <div id="imagePreview" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;"></div>
+    <div id="uploadStatus" style="margin-top: 10px;"></div>
+</div>
+
+<!-- Hidden field to store image URLs -->
+<input type="hidden" id="imageUrls" value="">
+             <!-- <div class="form-group">
+                <label>Upload Photos (Max 10)</label>
+                <input type="file" id="images" multiple accept="image/*">
+                <div class="image-preview" id="imagePreview"></div>
+            </div> -->
+            
+            <div style="text-align: center;">
+                <button type="submit" class="btn btn-success" id="submitBtn">List Property</button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='owner-dashboard.html'">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>&copy; 2025 Apna Ghar. All rights reserved.</footer>
+
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyA_OIuWvXSkUn20h2EZEHYEleA3FHJNsvA",
+        authDomain: "apnaghar-3.firebaseapp.com",
+        projectId: "apnaghar-3",
+        storageBucket: "apnaghar-3.firebasestorage.app",
+        messagingSenderId: "612810268433",
+        appId: "1:612810268433:web:21dc5aed5869a1fea636b0"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    console.log("✅ Firebase connected!");
+    
+    // ========== CLOUDINARY CONFIG ==========
+    const CLOUDINARY_CONFIG = {
+        cloudName: "dtmmrt9xu",
+        uploadPreset: "apna_ghar_preset"
+    };
+    
+    console.log("✅ Cloudinary Config:", CLOUDINARY_CONFIG);
+    
+    let currentUser = null;
+    
+    // ========== CHECK LOGIN ==========
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            console.log("✅ User logged in:", user.email);
+            
+            // Check if editing mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('edit');
+            if (editId) {
+                await loadPropertyForEdit(editId);
+                document.getElementById('formTitle').textContent = '✏️ Edit Property';
+                document.getElementById('submitBtn').textContent = 'Update Property';
+            }
+        } else {
+            console.log("❌ No user logged in");
+            alert("Please login first");
+            window.location.href = "login.html";
+        }
+    });
+    
+    // ========== PREVIEW IMAGES ==========
+    window.previewImages = function() {
+        const input = document.getElementById('images');
+        const preview = document.getElementById('imagePreview');
+        if (!input || !preview) return;
+        preview.innerHTML = '';
+        
+        for(let i = 0; i < input.files.length; i++) {
+            const file = input.files[i];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '100px';
+                img.style.height = '100px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '8px';
+                img.style.border = '2px solid #ff9800';
+                img.style.margin = '5px';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    // ========== UPLOAD TO CLOUDINARY ==========
+    async function uploadToCloudinary(file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_CONFIG.uploadPreset);
+        
+        try {
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+                { method: "POST", body: formData }
+            );
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                console.error("Cloudinary Error:", data);
+                throw new Error(data.error?.message || "Upload failed");
+            }
+            
+            console.log("✅ Cloudinary Upload Success:", data.secure_url);
+            return data.secure_url;
+        } catch(error) {
+            console.error("Upload error:", error);
+            return null;
+        }
+    }
+    
+    // ========== UPLOAD MULTIPLE IMAGES ==========
+    async function uploadMultipleImages(files) {
+        const urls = [];
+        const statusDiv = document.getElementById('uploadStatus');
+        if (!statusDiv) return urls;
+        
+        for(let i = 0; i < files.length; i++) {
+            statusDiv.innerHTML = `📤 Uploading image ${i+1} of ${files.length}...`;
+            const url = await uploadToCloudinary(files[i]);
+            if(url) {
+                urls.push(url);
+                statusDiv.innerHTML = `✅ Uploaded ${i+1} of ${files.length}`;
+            } else {
+                statusDiv.innerHTML = `❌ Failed to upload ${i+1}`;
+            }
+        }
+        statusDiv.innerHTML = urls.length > 0 ? `✅ ${urls.length} images uploaded!` : '❌ Upload failed';
+        return urls;
+    }
+    
+    // ========== SUBMIT PROPERTY ==========
+    document.getElementById('propertyForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!currentUser) {
+            alert("Please login first");
+            window.location.href = "login.html";
+            return;
+        }
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const imageInput = document.getElementById('images');
+        
+        // Validate image selection
+        if (!imageInput || imageInput.files.length === 0) {
+            alert("❌ Please select at least one image for the property!");
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Uploading Images...';
+        
+        // Upload images to Cloudinary
+        let imageUrls = [];
+        imageUrls = await uploadMultipleImages(Array.from(imageInput.files));
+        
+        if (imageUrls.length === 0) {
+            alert("❌ Image upload failed! Please try again.");
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Add Property';
+            return;
+        }
+        
+        console.log("Final image URLs to save:", imageUrls);
+        
+        submitBtn.textContent = 'Saving Property...';
+        
+        // Get form values
+        const propertyData = {
+            title: document.getElementById('title')?.value || '',
+            type: document.getElementById('type')?.value || '',
+            purpose: document.getElementById('purpose')?.value || '',
+            price: Number(document.getElementById('price')?.value) || 0,
+            deposit: Number(document.getElementById('deposit')?.value) || 0,
+            bedrooms: Number(document.getElementById('bedrooms')?.value) || 0,
+            bathrooms: Number(document.getElementById('bathrooms')?.value) || 0,
+            area: Number(document.getElementById('area')?.value) || 0,
+            furnishing: document.getElementById('furnishing')?.value || '',
+            address: document.getElementById('address')?.value || '',
+            city: document.getElementById('city')?.value || '',
+            description: document.getElementById('description')?.value || '',
+            amenities: document.getElementById('amenities')?.value ? 
+                document.getElementById('amenities').value.split(',').map(a => a.trim()) : [],
+            images: imageUrls,
+            ownerId: currentUser.uid,
+            status: 'active',
+            createdAt: new Date().toISOString()
+        };
+        
+        // Check if editing
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        
+        try {
+            if (editId) {
+                const propertyRef = doc(db, "properties", editId);
+                await updateDoc(propertyRef, propertyData);
+                alert('✅ Property updated successfully with images!');
+            } else {
+                await addDoc(collection(db, "properties"), propertyData);
+                alert('✅ Property added successfully with images!');
+            }
+            window.location.href = 'owner-dashboard.html';
+        } catch(error) {
+            console.error("Error saving property:", error);
+            alert('❌ Error: ' + error.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = editId ? 'Update Property' : 'Add Property';
+        }
+    });
+    
+    // ========== LOAD PROPERTY FOR EDIT ==========
+    async function loadPropertyForEdit(propertyId) {
+        try {
+            const propertyRef = doc(db, "properties", propertyId);
+            const propertySnap = await getDoc(propertyRef);
+            
+            if (propertySnap.exists()) {
+                const prop = propertySnap.data();
+                document.getElementById('title').value = prop.title || '';
+                document.getElementById('type').value = prop.type || '';
+                document.getElementById('purpose').value = prop.purpose || '';
+                document.getElementById('price').value = prop.price || '';
+                document.getElementById('deposit').value = prop.deposit || '';
+                document.getElementById('bedrooms').value = prop.bedrooms || '';
+                document.getElementById('bathrooms').value = prop.bathrooms || '';
+                document.getElementById('area').value = prop.area || '';
+                document.getElementById('furnishing').value = prop.furnishing || '';
+                document.getElementById('address').value = prop.address || '';
+                document.getElementById('city').value = prop.city || '';
+                document.getElementById('description').value = prop.description || '';
+                document.getElementById('amenities').value = (prop.amenities || []).join(', ');
+            }
+        } catch(error) {
+            console.error("Error loading property:", error);
+        }
+    }
+    
+    // ========== THEME ==========
+    (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const themeBtn = document.getElementById('theme-toggle');
+        if(themeBtn) {
+            themeBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            themeBtn.onclick = function() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const newTheme = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeBtn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            };
+        }
+    })();
+    
+    console.log("✅ Script ready — Image upload will work!");
+</script>
+</body>
+</html>
